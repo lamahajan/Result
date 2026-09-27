@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marks Entry</title>
+<style>
+:root {
+  --bg:#f5f5f7; --card:#ffffff; --ink:#1d1d1f; --ink-soft:#6e6e73; --ink-faint:#a1a1a6;
+  --line:rgba(0,0,0,.08); --accent:#0071e3; --accent-press:#0060c7; --warn:#d92d20; --good:#1a7f37;
+  --shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 30px -12px rgba(0,0,0,.12);
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#000000; --card:#1c1c1e; --ink:#f5f5f7; --ink-soft:#98989d; --ink-faint:#636366;
+    --line:rgba(255,255,255,.09); --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#000000; --card:#1c1c1e; --ink:#f5f5f7; --ink-soft:#98989d; --ink-faint:#636366;
+  --line:rgba(255,255,255,.09); --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
+}
+html { scroll-padding-top:env(safe-area-inset-top,0px); }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  margin:0; background:var(--bg); color:var(--ink); min-height:100%;
+  font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header {
+  position:sticky; top:0; z-index:10; padding:calc(14px + env(safe-area-inset-top,0px)) 22px 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter:blur(20px) saturate(1.6); -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-bottom:1px solid var(--line);
+}
+header h1 { font-size:1.05rem; font-weight:600; margin:0; letter-spacing:-.01em; }
+header .who { font-size:.82rem; color:var(--ink-soft); }
+main { max-width:640px; margin:0 auto; padding:28px 18px 80px; }
+.center-stage { min-height:calc(100vh - 140px); display:flex; align-items:center; justify-content:center; }
+.card {
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:26px; margin-bottom:16px; box-shadow:var(--shadow);
+}
+.card.tight { padding:20px; }
+h2.card-title { font-size:1.3rem; font-weight:700; letter-spacing:-.02em; margin:0 0 4px; }
+p.card-sub { color:var(--ink-soft); font-size:.9rem; margin:0 0 20px; }
+label { display:block; font-size:.78rem; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+input, select {
+  font:inherit; font-size:1rem; padding:12px 14px; border-radius:var(--r-sm); border:1px solid var(--line);
+  background:color-mix(in srgb, var(--bg) 55%, var(--card) 45%); color:var(--ink); width:100%;
+  transition:border-color .15s ease, box-shadow .15s ease; -webkit-appearance:none; appearance:none;
+}
+input::placeholder { color:var(--ink-faint); }
+input:focus, select:focus {
+  outline:none; border-color:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+select {
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236e6e73'%3e%3cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3e%3c/svg%3e");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:34px;
+}
+.field { margin-bottom:14px; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+button {
+  font:inherit; font-weight:600; font-size:.95rem; cursor:pointer; border:none;
+  border-radius:980px; padding:13px 22px; transition:transform .12s ease, opacity .12s ease, background .12s ease;
+}
+button.primary { background:var(--accent); color:#fff; width:100%; }
+button.primary:hover { background:var(--accent-press); }
+button.primary:active { transform:scale(.98); }
+button.primary:disabled { opacity:.4; cursor:default; transform:none; }
+button.ghost { background:color-mix(in srgb, var(--ink) 6%, transparent); color:var(--ink); }
+button.ghost:hover { background:color-mix(in srgb, var(--ink) 10%, transparent); }
+button.ghost:active { transform:scale(.98); }
+.linklike {
+  background:none; border:none; color:var(--accent); font-size:.85rem; font-weight:500;
+  padding:4px 0; cursor:pointer; text-decoration:none; display:inline-block;
+}
+.segmented {
+  display:flex; gap:3px; padding:3px; background:color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius:var(--r-sm); margin-bottom:14px;
+}
+.segmented button {
+  flex:1; background:transparent; color:var(--ink-soft); padding:9px 8px; border-radius:8px;
+  font-size:.86rem; font-weight:600; white-space:nowrap;
+}
+.segmented button.active { background:var(--card); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.12); }
+table { width:100%; border-collapse:collapse; font-size:.94rem; }
+th { text-align:left; padding:0 6px 10px; color:var(--ink-faint); font-weight:600; font-size:.72rem; letter-spacing:.02em; }
+td { padding:11px 6px; border-top:1px solid var(--line); vertical-align:middle; }
+td.roll { color:var(--ink-soft); width:44px; }
+td.marks { text-align:right; width:110px; }
+td.marks input {
+  width:84px; padding:8px 10px; text-align:right; font-variant-numeric:tabular-nums;
+}
+td.marks .locked {
+  display:inline-flex; align-items:center; gap:6px; color:var(--ink-soft); font-variant-numeric:tabular-nums;
+  justify-content:flex-end; width:100%;
+}
+td.marks .locked svg { width:14px; height:14px; opacity:.55; }
+.tablewrap { overflow-x:auto; margin:0 -6px; }
+.status { font-size:.85rem; margin-top:10px; min-height:1.2em; color:var(--ink-soft); }
+.status.ok { color:var(--good); }
+.status.err { color:var(--warn); }
+.hidden { display:none !important; }
+.toprow { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:18px; }
+.small { font-size:.78rem; color:var(--ink-soft); }
+.admin-drawer { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+.avatar {
+  width:44px; height:44px; border-radius:50%; background:linear-gradient(160deg,var(--accent),#5ac8fa); color:#fff;
+  display:inline-flex; align-items:center; justify-content:center; font-size:1.05rem; font-weight:700;
+}
+/* app shell */
+main.shell { padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+.screen { display:none; animation:screenIn .28s cubic-bezier(.2,.8,.2,1); }
+.screen.active { display:block; }
+@keyframes screenIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+.hero-row { display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+.hero-row h2 { margin:0; font-size:1.5rem; font-weight:700; letter-spacing:-.02em; }
+.hero-row p { margin:2px 0 0; color:var(--ink-soft); font-size:.88rem; }
+.action-card {
+  display:flex; align-items:center; justify-content:space-between; gap:14px; cursor:pointer;
+  background:linear-gradient(135deg, var(--accent), #4aa8ff); color:#fff; border-radius:var(--r-lg);
+  padding:22px 24px; margin-bottom:16px; box-shadow:0 12px 28px -10px rgba(0,113,227,.45);
+  transition:transform .15s ease;
+}
+.action-card:active { transform:scale(.98); }
+.action-card h3 { margin:0 0 4px; font-size:1.15rem; font-weight:700; }
+.action-card p { margin:0; font-size:.85rem; opacity:.9; }
+.action-card .arrow { font-size:1.4rem; opacity:.9; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.stat-card { padding:18px; }
+.stat-card .num { font-size:1.7rem; font-weight:700; letter-spacing:-.02em; }
+.stat-card .lbl { font-size:.78rem; color:var(--ink-soft); margin-top:2px; }
+/* bottom tab bar */
+.tabbar {
+  position:fixed; left:0; right:0; bottom:0; z-index:20;
+  display:flex; padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+  background:color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter:blur(20px) saturate(1.6); -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-top:1px solid var(--line);
+}
+.tabbar button {
+  flex:1; background:none; border:none; border-radius:0; padding:6px 4px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink-faint);
+  font-size:.68rem; font-weight:600;
+}
+.tabbar button svg { width:23px; height:23px; }
+.tabbar button.active { color:var(--accent); }
+/* toast */
+#toastWrap {
+  position:fixed; left:0; right:0; bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  display:flex; justify-content:center; z-index:30; pointer-events:none;
+}
+.toast {
+  background:var(--ink); color:var(--bg); padding:11px 18px; border-radius:980px; font-size:.86rem; font-weight:600;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.4); opacity:0; transform:translateY(10px); transition:opacity .25s ease, transform .25s ease;
+}
+.toast.show { opacity:1; transform:none; }
+.toast.err { background:var(--warn); color:#fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Marks Entry</h1>
+  <div class="who" id="whoBar"></div>
+</header>
+
+<main id="mainEl" class="shell">
+
+<div class="center-stage" id="loginStage">
+<div class="card" id="loginCard" style="width:100%; max-width:380px;">
+  <h2 class="card-title">Sign in</h2>
+  <p class="card-sub">Enter the name and PIN your admin gave you.</p>
+  <div class="field">
+    <label for="loginName">Name</label>
+    <input id="loginName" placeholder="Ramesh Sharma" autocomplete="off">
+  </div>
+  <div class="field">
+    <label for="loginPin">4-digit PIN</label>
+    <input id="loginPin" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+  </div>
+  <button class="primary" id="loginBtn">Sign in</button>
+  <div class="status" id="loginStatus"></div>
+  <div style="text-align:center; margin-top:16px;">
+    <button class="linklike" id="adminToggle">Admin — add a staff login</button>
+  </div>
+  <div class="hidden admin-drawer" id="adminPanel">
+    <div class="field"><label for="adminPass">Admin passcode</label><input id="adminPass" type="password" autocomplete="off"></div>
+    <div class="row2">
+      <div class="field"><label for="newStaffName">Name</label><input id="newStaffName" autocomplete="off"></div>
+      <div class="field"><label for="newStaffPin">PIN</label><input id="newStaffPin" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+    </div>
+    <button class="ghost" id="addStaffBtn" style="width:100%;">Add staff login</button>
+    <div class="status" id="adminStatus"></div>
+  </div>
+</div>
+</div>
+
+<div class="hidden" id="appArea">
+
+  <!-- HOME -->
+  <section class="screen active" id="screenHome">
+    <div class="hero-row">
+      <div class="avatar" id="homeAvatar"></div>
+      <div>
+        <h2 id="homeGreeting">Hi</h2>
+        <p>Ready to enter today's marks?</p>
+      </div>
+    </div>
+    <div class="action-card" id="goMarksCard">
+      <div><h3>Enter marks</h3><p>Pick a class, subject and head</p></div>
+      <div class="arrow">→</div>
+    </div>
+    <div class="stat-grid">
+      <div class="card stat-card"><div class="num" id="statClasses">21</div><div class="lbl">Classes</div></div>
+      <div class="card stat-card"><div class="num" id="statHeads">5</div><div class="lbl">Assessment heads</div></div>
+    </div>
+  </section>
+
+  <!-- MARKS -->
+  <section class="screen" id="screenMarks">
+    <div class="card">
+      <h2 class="card-title" style="font-size:1.1rem;">Select what to mark</h2>
+      <div class="field"><label>Class</label><select id="selClass"></select></div>
+      <div class="field"><label>Subject</label><select id="selSubject"></select></div>
+      <div class="field">
+        <label>Term</label>
+        <div class="segmented" id="segTerm"></div>
+      </div>
+      <div class="field">
+        <label>Assessment head</label>
+        <div class="segmented" id="segHead"></div>
+      </div>
+      <button class="primary" id="loadBtn">Load students</button>
+    </div>
+
+    <div class="card hidden" id="entryCard">
+      <div class="toprow">
+        <div>
+          <h2 class="card-title" style="font-size:1.1rem;" id="entryTitle"></h2>
+          <span class="small" id="lastSaved"></span>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Roll</th><th>Student</th><th style="text-align:right">Marks</th></tr></thead>
+          <tbody id="stuBody"></tbody>
+        </table>
+      </div>
+      <div style="height:18px"></div>
+      <button class="primary" id="saveBtn">Save marks</button>
+      <div class="status" id="saveStatus"></div>
+    </div>
+  </section>
+
+  <!-- MORE -->
+  <section class="screen" id="screenMore">
+    <div class="card tight">
+      <div class="small" style="margin-bottom:12px">Export everything entered so far, for bringing into the school records.</div>
+      <button class="ghost" id="exportBtn" style="width:100%;">Export all entries (CSV)</button>
+      <div class="status" id="exportStatus"></div>
+    </div>
+  </section>
+
+</div>
+
+</main>
+
+<div class="hidden tabbar" id="tabbar">
+  <button data-screen="screenHome" class="active">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3z"/></svg>
+    Home
+  </button>
+  <button data-screen="screenMarks">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h11l5 5v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm7 7H8v2h4v-2zm4 4H8v2h8v-2z"/></svg>
+    Marks
+  </button>
+  <button data-screen="screenMore">
+    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+    More
+  </button>
+</div>
+
+<div id="toastWrap"><div class="toast" id="toastEl"></div></div>
+
+<script>
+const LOCK_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1a4 4 0 00-4 4v2H5a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2h-1V5a4 4 0 00-4-4zm2 6V5a2 2 0 10-4 0v2h4z" clip-rule="evenodd"/></svg>';
+let toastTimer = null;
+function showToast(msg, isErr){
+  const t = document.getElementById("toastEl");
+  t.textContent = msg; t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.classList.remove("show"); }, 2600);
+}
+// ---- static reference data (from current-year setup) ----
+function parsePairs(s){ const o={}; s.split("|").forEach(p=>{const i=p.indexOf(":"); o[p.slice(0,i)]=p.slice(i+1);}); return o; }
+const CLASSES = parsePairs("1:11th Science|2:11th Commerce|3:12th Commerce|4:12th Science|5:10th|6:1st|7:2nd|8:3rd|9:4th|10:5th|11:6th|12:7th|13:8th|14:9th|15:Jr.KG|16:Nursery|18:Sr.KG|19:11th|20:12th|21:Pre Nursery");
+const SUBJECTS = parsePairs("1:Chemistry|2:Hindi|3:Punjabi|4:Mathematics|5:Science|6:SSt|7:Computer|8:G K|9:EVS|10:English|11:Physics|12:Rhymes|13:Biology|14:Economics|15:Accountancy|16:Business Studies|17:Art & Craft|18:Physical Education|19:Conversation|20:Story Telling|21:Moral Science|22:ALL Subject|23:Good Manners");
+const TERMS = parsePairs("1:Term 1|2:Term 2");
+const HEADS = {}; "1:PPT:5|2:MA:5|3:Portfolio:5|4:Sub Enrichment:5|5:Half-Yearly:80".split("|").forEach(p=>{const [id,name,max]=p.split(":"); HEADS[id]={name,max:Number(max)};});
+const STUDENTS = "30001;Divyansh Khajuria;5;1~30003;Harleen Anguraal;5;2~30011;Garima;5;3~30014;Tanvi Saini;5;4~30015;Anirudh Pratap Singh;5;5~30016;Ankush Lalotra;5;6~30017;Harmeet Singh;5;7~30021;Niharika Saini;5;8~30025;Naitik Saini;5;9~30026;Puneeta Katal;5;10~30029;Jasmeet;5;11~30033;Siddharth Saini;5;12~30040;Loveleen Kaur;5;13~30044;Vidhi;5;14~30049;Ananya Sangotra;5;15~30053;Jaslin Saini;5;16~30062;Aarav Saini;5;17~30064;Aditi Saini;5;18~30068;Bhumika Thakur;5;20~30076;Aryan;5;21~30079;Prachi Sarangal;5;22~30085;Sukhreet Kaur;5;23~30088;Anshuman;5;24~30090;Raghav Thakur;5;25~30091;Suhana;5;26~30093;Sehajdeep Sarai;5;27~30095;Vishal Thakur;5;28~30097;Khawahish Sharma;5;29~30098;Prabhjot Singh;5;30~30100;Ridhima;5;32~30105;Rohan Singh;5;33~30101;Krrish Mehra;5;34~30103;Dakishita Saini;5;36~30106;Mehakpreet Kaur;5;37~30107;Dakshit;5;38~30109;Himanshi;5;39~30108;Tanroop Singh;5;40~23001;Rishika Sharma;6;1~23002;Ishaan Attri;6;2~23003;Harsimrat Kaur;6;3~23004;Aarav Tredia;6;4~23005;Sargunpreet Kaur;6;5~23006;Pranav Salaria;6;6~23008;Aryan Janjua;6;8~23007;Ravnoor Kalotra;6;9~23009;Gursirat Kaur;6;10~23010;Manraj;6;11~23011;Pratigya Chandal;6;12~23012;Amayra;6;13~23013;Eshant;6;14~23014;Manraj Singh;6;15~23015;Saransh Mahajan;6;16~23016;Shivaay Sharma;6;17~23018;Kiyansh Thakur;6;19~23020;Divyana;6;20~23021;Siddarth Thakur;6;21~23022;Jeevansh Angural;6;22~23023;Jaideep Singh;6;23~23024;Aarush Sharma;6;24~23025;Samaira Thakur;6;25~23026;Harjeet Singh;6;26~23037;Yeshika Kumari;6;27~23030;Bahvneet Kaur;6;28~23031;Anvi Salaria;6;29~23032;Vihaan Saini;6;30~23033;Samrita Kumari;6;31~23034;Ruhanika;6;32~23036;Niketa;6;33~23038;Avneet Kaur;6;34~23039;Harleen;6;35~23041;Aradhya Rai;6;36~23042;Arya Rai;6;37~23044;Inayat;6;38~23045;Vihaan Kundal;6;39~23046;Hargun Manjotra;6;40~23047;Priyanshi;6;41~23048;Arshdeep;6;42~23051;Hardika;6;43~23052;Keyan Dubgotra;6;44~23068;Sameer Khajuria;6;45~23053;Vidhi;6;46~23067;Garima Thakur;6;48~23069;Hardik Mehra;6;49~23070;Himani;6;50~23059;Takdeer Kaur;6;52~23063;Ditya Chalotra;6;53~23071;Tanmay Sharma;6;54~23072;Parshant Sharma;6;55~23073;Ryan;6;56~23075;Jashandeep Singh;6;57~23076;Noor Seharia;6;59~23078;Tanish Seharia;6;61~23079;Kartik;6;62~23080;Yashika Pathania;6;63~23081;Divyansh Thappa;6;81~23082;Devanshi;6;82~23083;Manya Saini;6;83~23084;Simranjit Kaur;6;84~22004;Rohan Loona;7;1~22102;Sukriti;7;2~22010;Shriansh;7;3~22012;Yuvraj Singh;7;5~22013;Moulik;7;6~22028;Kartik Samyal;7;8~22029;Abhyansh Attri;7;9~22018;Kriyansh Saini;7;10~22030;Hargun;7;11~22053;Samreet Kaur;7;12~22031;Naman Majotra;7;13~22025;Hargunpreet Kaur;7;14~22035;Smayra Thakur;7;16~22033;Sukriti Arya;7;17~22040;Devansh;7;18~22039;Reyansh Katal;7;19~22041;Anvi;7;20~22042;Prachi Thakur;7;21~22020;Ankita;7;22~22044;Priyanshi Sumbria;7;23~22054;Vikrant;7;24~22047;Avneet Kaur;7;25~22023;Harman Kaur;7;26~22022;Ekamjot Singh;7;28~22046;Harshit Thakur;7;29~22069;Mankreet Kaur;7;30~22051;Jatin;7;31~22045;Aemreen Kaur;7;32~22049;Aayan Saini;7;33~22032;Aanav;7;34~22027;Mishty Saini;7;35~22050;Manveer Kaur;7;36~22002;Tejasvi Sharma;7;37~22056;Gurkirat Kaur;7;38~22052;Daksh Arya;7;39~22006;Janvi Jasrotia;7;40~22048;Diljyot Singh;7;41~22059;Pratibha Devi;7;42~22061;Aryans Aloona;7;43~22062;Balhaar Singh;7;44~22065;Tanish;7;46~22087;Jaskaran;7;47~22005;Nadiya;7;49~22067;Riyansh Janjua;7;50~22085;Navya;7;51~22007;Bhavish Saini;7;52~22026;Mayra;7;53~22068;Nitya Thakur;7;54~22072;Pranjal Thakur;7;56~22073;Rachita Sharma;7;57~22075;Nimrat;7;58~22077;Kairav Saini;7;60~22078;Sahir Attri;7;61~22079;Harshit;7;62~22088;Tanvir Singh;7;63~22082;Pragun Saini;7;64~22083;Prakul   Saini;7;65~22089;Manika;7;66~22090;Jasvi Chib;7;67~22091;Ramneek Hans;7;68~22092;Gurleen Kaur;7;69~22093;Kavya;7;93~22094;Gobind;7;94~22095;Ritvik Rehan;7;95~22097;Arnav Saini;7;97~22098;Saksham;7;98~22099;Aarav;7;99~22100;Divam Bhagat;7;100~100001;Avni Thakur;8;1~100004;Aahil Veer Singh Saini;8;2~100002;Devansh Lalotra;8;3~100007;Seerat Angural;8;4~100010;Yuvika Thakur;8;5~100009;Ranjot Singh;8;6~100011;Rajbir;8;7~100058;Bhargav;8;8~100012;Manpreet Kaur;8;9~100016;Thanvey Chandal;8;10~100017;Taksh Saini;8;11~100019;Tarash Saini;8;12~100018;Pankaj;8;13~100023;Gurchahat;8;14~100025;Navya Saini;8;15~100028;Lovya Saini;8;16~100027;Viraj;8;17~100029;Pankita;8;18~100030;Manya;8;19~100066;Agamjot Singh;8;20~100070;Namandeep Singh;8;21~100069;Navpreet Kaur;8;22~100122;Danish;8;23~100031;Raavi;8;24~100124;Priyanshi;8;25~100125;Ruhani Singh;8;25~100123;Navreet Sandewal;8;25~100105;Kirti;8;26~100126;Harshith Sharma;8;26~100067;Tanish Meenia;8;27~100127;Divyansh Khajuria;8;27~100032;Aarush Mehra;8;28~100128;Suryansh Thapa;8;28~100033;Jaivik Saini;8;29~100129;Sanchit Saini;8;29~100130;Avni Thakur;8;30~100034;Yuvraj Jogial;8;30~100131;Vijit Saini;8;31~100071;Jeewan Jyoti;8;31~100055;Khushmeet;8;32~100132;Kavyapreet Kaur;8;32~100035;Aarav Saini;8;33~100036;Kairvy Thakur;8;34~100037;Dakshak Chalotra;8;35~100090;Yuvraj Singh;8;36~100040;Divyansh;8;37~100041;Nayra;8;38~100042;Samayra;8;39~100043;Disha Salaria;8;40~100015;Gurkirat Singh;8;41~100044;Arnav Singh;8;42~100060;Ayaan Saini;8;43~100114;Hargun Kaur;8;44~100045;Kavyansh Attri;8;45~100046;Sachit;8;46~100047;Naina Thakur;8;47~100048;Amarbir;8;48~100063;Himanshu;8;49~100050;Divyanshika;8;50~100051;Jazleen Singh;8;51~100052;Varun Singh;8;52~100074;Kaiyara;8;53~100075;Kunal;8;54~100079;Aditya Thakur;8;55~100080;Gurbaksh Singh;8;56~100082;Mahi;8;57~100084;Gurman Kaur;8;58~100085;Charvee Saini;8;59~100091;Dilpreet;8;60~100086;Mannat Saini;8;61~100087;Manav Fonssey;8;62~100088;Harmandeep Singh;8;63~100089;Bhawna;8;64~100092;Armandeep;8;65~100120;Garrish;8;66~100095;Sahir;8;67~100096;Varinder Singh;8;68~100097;Narvik Loonye;8;69~100098;Bhavesh Malhotra;8;70~100099;Devansh Salaria;8;71~100107;Kuwar Noor Singh;8;72~100108;Jivik;8;73~100109;Sanvi Harchand;8;74~100110;Prateek Thakur;8;75~100111;Purvika Thakur;8;76~100112;Tanmay Angural;8;77~100113;Moksh Thakur;8;78~100115;Ashmeet Kaur;8;79~100116;Piyush;8;80~100117;Shnay Badanchia;8;81~100118;Riyanshi;8;82~100119;Baljot Singh;8;83~100121;Parmish Saini;8;84~90097;Raghav Barna;9;1~90048;Amaira Vaidya;9;1~90049;Sehaj;9;2~90042;Ayaan;9;3~90043;Bhaviya;9;4~90054;Mankirat Kaur;9;5~90046;Radhya Singh;9;6~90003;Nitish Kumar;9;7~90107;Umanjot Kaur;9;7~90108;Tejvir Singh;9;8~90005;Karitik Angural;9;8~90036;Preet Pangotra;9;9~90096;Nitka;9;10~90110;Vivan Sharma;9;10~90008;Advir Singh;9;11~90069;Rajinder Singh;9;12~90009;Karanveer Kundal;9;13~90010;Panav Singh;9;14~90011;Maninder Singh Maan;9;15~90012;Palak;9;16~90055;Agampreet Kaur;9;17~90056;Naitik;9;18~90013;Manya Thakur;9;19~90092;Reyansh Singh;9;21~90015;Bhavjot Kaur;9;22~90060;Kannav Variah;9;23~90016;Samar Digra;9;24~90063;Ayan Thakur;9;25~90062;Aadish Sharma;9;26~90065;Jivyansh Singh;9;27~90037;Hardik;9;29~90024;Daksh;9;30~90026;Daivik Saini;9;31~90029;Saatvik Singh;9;32~90071;Naman;9;33~90073;Yashvardhan Singh Thakur;9;34~90074;Bandhanpreet Kaur;9;35~90075;Kavish Saini;9;36~90080;Kavya;9;39~90081;Aadvik Thakur;9;40~90085;Ekamjot  Singh;9;41~90082;Haneet Kaur;9;42~90083;Tanvi Thakur;9;43~90106;Sumit;9;44~90084;Navneet Malhotra;9;45~90086;Manseerat Kaur;9;46~90087;Gurgavin Singh;9;47~90098;Sahil Kumar;9;48~90088;Niharika  Adol;9;49~90089;Deevanshi Doal;9;50~90090;Nirveh Thakur;9;51~90091;Gurveer Singh;9;52~90093;Suryansh Singh;9;53~90104;Himansh Janjua;9;56~90101;Harpreet Kaur;9;57~90099;Vanshika Mehra;9;58~90100;Ravneet Kaur;9;59~90105;Pranav Hans;9;60~80001;Shivanya;10;1~80003;Laayra Saini;10;2~80004;Arnav Singh;10;3~80007;Manpreet Kaur;10;4~80121;Aditi Thakur;10;5~80010;Harshit;10;7~80012;Nityanjali;10;8~80013;Biraj Singh;10;9~80018;Manveer;10;10~80020;Harnoor;10;11~80021;Kiratdeep Singh;10;12~80023;Arnav Singh;10;13~80123;Devansh Khajuria;10;14~80026;Kamya Mahajan;10;15~80120;Bhavika;10;16~80027;Shivansh Sharma;10;17~80028;Aruditi Saini;10;18~80033;Parthiv Saini;10;19~80037;Kanish Thakur;10;20~80040;Seerat Kaur;10;21~80041;Sahibjot Singh;10;22~80042;Mehtajpreet Singh;10;23~80134;Lakshita Saini;10;24~80043;Kappish Saini;10;25~80044;Akshit Sandhewal;10;26~80050;Mannat Sharma;10;27~80051;Pranav;10;28~80129;Rivaan;10;29~80054;Yogita;10;30~80073;Divjot Chalotra;10;31~80131;Khushpreet;10;32~80140;Hitaishi Sharma;10;33~80146;Aarav Kumar;10;34~80145;Bhargav Thakur;10;35~80147;Jasmeet;10;47~80148;Harseerat Kaur;10;48~80149;Jashan Saini;10;49~80150;Sonam;10;50~80151;Devanshika Thakur;10;51~80002;Vidika;10;1~80119;Jaksh;10;2~80115;Amritpreet Kaur;10;3~80032;Latika;10;4~80125;Gunjan;10;5~80039;Samayra Rajput;10;6~80135;Prachi Malhotra;10;7~80136;Virajdeep Loonye;10;8~80048;Paras Kumar;10;9~80137;Jaskirat  Singh;10;10~80143;Rajveer Singh;10;11~80127;Peehu Thakur;10;12~80053;Tejvinder Singh;10;13~80133;Kritik Saini;10;14~80141;Charvi;10;16~80142;Harmandeep Singh Randhava;10;17~70101;Aahana;11;1~70001;Adarsh Sharma;11;1~70102;Abhijot Singh;11;2~70002;Bhavesh Thakur;11;2~70006;Ishant;11;3~70103;Shivansh Salaria;11;3~70104;Tanvi Sharma;11;4~70041;Sameer Salaria;11;4~70012;Taranveer Singh;11;7~70056;Kanav Saini;11;8~70108;Maahir Attri;11;8~70013;Manvi;11;9~70061;Hiteshwar Saini;11;11~70019;Deshav Khanotra;11;12~70064;Aashami Thakur;11;13~70023;Vansh;11;14~70105;Priyanshi Thakur;11;15~70026;Ravya Dhiman;11;16~70029;Aadit Thakur;11;17~70071;Jagroop Singh Goshal;11;18~70031;Hartiksha;11;19~70034;Manjyot Singh;11;20~70054;Navseerat;11;21~70055;Harpreet;11;22~70087;Kritika;11;23~70077;Nikunj Bains;11;25~70078;Krishna Barna;11;26~70094;Chakshu;11;27~70090;Anshuman;11;28~70091;Rubani;11;29~70093;Ridhima;11;30~70095;Harseerat Kaur;11;31~70096;Manjeet Kaur;11;32~70097;Devika;11;33~70098;Devik;11;34~70106;Ridhima;11;65~70107;Rihana Thakur;11;78~70100;Chetna;11;100~70018;Arushi Sangotra;11;1~70024;Shivansh Thakur;11;2~70003;Lakshya Katal;11;3~70004;Kavya Saini;11;4~70035;Sourav Singh;11;5~70043;Samar Katal;11;6~70052;Rohani;11;8~70057;Manik;11;9~70062;Ruhi Rai;11;10~70069;Karanveer Singh;11;12~70030;Rajvir;11;13~70079;Sparsh;11;15~70032;Manita;11;16~70033;Rohanika;11;17~70080;Vanshika;11;18~70081;Kamiya;11;19~70082;Manya Salaria;11;20~70083;Peehu Lalotra;11;21~70086;Nakul Verma;11;22~70058;Sanmeet Kaur;11;23~70066;Seerat Sarai;11;24~70089;Maninder;11;26~60009;Pariniti;12;1~60002;Sunaina Babbar;12;2~60027;Abhey Singh Harchand;12;2~60030;Dawan Attri;12;3~60020;Harshit Saini;12;3~60036;Jasdeep Kaur;12;4~60003;Ahana Rajput;12;4~60006;Divyanshi;12;5~60038;Paras Thakur;12;5~60010;Shranya Singh;12;6~60049;Sushant Kumar;12;6~60015;Siddi;12;7~60055;Aadhyan Sharma;12;7~60016;Riddi;12;8~60058;Naksh Lalotra;12;8~60071;Avneet Singh;12;9~60017;Gurjot Singh;12;9~60073;Kavya;12;10~60019;Sehajpreet Singh;12;10~60021;Chhaya Saini;12;11~60074;Nishant Bassan;12;11~60078;Kunal Mahal;12;12~60072;Pihu Thakur;12;12~60023;Darika Thakur;12;13~60083;Harpreet Singh;12;13~60114;Aanvi;12;14~60028;Manik Saini;12;14~60094;Nishant Thakur;12;14~60029;Ronit Saini;12;15~60056;Pranav Kumar;12;15~60115;Manmit Singh Bajwa;12;15~60031;Mehmum Singh;12;16~60116;Kavya Sharma;12;16~60099;Tejal  Kumari;12;16~60105;Vishali;12;17~60117;Ravneet Saini;12;17~60033;Suryakant Manhas;12;17~60043;Deevashu;12;18~60118;Akshdeep Thakur;12;18~60106;Aaradhya    Thakur;12;18~60109;Prabhjot Kaur;12;19~60085;Harkirat Singh;12;19~60095;Yogita;12;20~60110;Seerat Kaur;12;20~60093;Anuj Gupta;12;21~60100;Jastegh Singh Banwait;12;22~60101;Harsh Pal Khajuria;12;23~60108;Viresh Sharma;12;24~60111;Vanshika;12;25~60091;Mannat Kaur;12;26~60112;Vivek Seharia;12;27~50008;Mayank;13;1~50002;Divyam Sharma;13;2~50004;Abhimanyu Katal;13;4~50009;Manav Salaria;13;5~50026;Akshit Kumar;13;6~50029;Anirudh;13;7~50013;Japjeet Singh;13;8~50016;Aryan Salaria;13;9~50039;Arav Harchand;13;10~50040;Manav Manjotra;13;11~50048;Aman Preet;13;13~50012;Janvi Samyal;13;14~50020;Pratiksha;13;15~50023;Aarav Mahajan;13;16~50090;Rupinder Kumar;13;17~50086;Manvi Babber;13;18~50028;Amaksh;13;19~50032;Manthan;13;20~50088;Prabhjot Kaur;13;21~50035;Aanshik Jarangal;13;22~50089;Parmjeet;13;23~50123;Aaradhya Thapa;13;23~50124;Maninder Singh;13;24~50125;Himakshi;13;25~50036;Pratham Saini;13;25~50099;Tanveer Kour;13;26~50037;Danish Chalotra;13;27~50042;Saksham Thakur;13;28~50097;Navjoti;13;29~50101;Abhimanyu;13;30~50043;Anita;13;31~50049;Vani Saini;13;32~50102;Kirat Kaur;13;33~50051;Harkirat Singh;13;34~50104;Nikhil Singh;13;35~50046;Harika;13;36~50107;Karnik Hans;13;37~50053;Kamya Aloona;13;38~50108;Navdeep Singh;13;39~50112;Sarthak Manhas;13;40~50084;Simar Saini;13;41~50114;Jasraj Singh;13;42~50113;Aditya Lalotra;13;43~50054;Tamanna Attri;13;44~50085;Sushant;13;45~50116;Namish Verma;13;46~50067;Navika;13;47~50118;Nakshit Thakur;13;48~50087;Drishi Sharma;13;49~50082;Kritika;13;50~50096;Hitanshi;13;51~50100;Vansh Saini;13;52~50103;Anirudh Thakur;13;53~50106;Aarav Thakur;13;54~50111;Lakshya Manhas;13;55~50117;Danish Sharma;13;56~50121;Harnoor;13;57~50120;Shashwat Singh;13;58~40008;Sanchi Saini;14;1~40002;Ranvir Singh;14;2~40003;Mandeep Kumar;14;3~40009;Sachin Singh;14;4~40021;Tanishq Saini;14;5~40004;Utkarsh Sharma;14;6~40023;Janat Babber;14;7~40024;Rudar Partap Singh;14;8~40005;Vishal Majotra;14;9~40013;Arpanjot Singh;14;10~40045;Kabir Khajuria;14;11~40057;Arpita Saini;14;12~40028;Samriti Jasrotia;14;13~40061;Gurpreet Digra;14;14~40029;Maan Singh;14;15~40031;Akshra Kundal;14;16~40034;Dollcee Sharma;14;17~40066;Lakshak Saini;14;18~40078;Veer Partap Singh;14;19~40035;Harshita;14;20~40082;Vansh;14;21~40049;Simranjit Kaur;14;22~40083;Vidika;14;23~40052;Koshiv Saini;14;25~40075;Dawinder Singh;14;26~40074;Sakshi;14;27~40087;Ravneet Kaur;14;28~40088;Dhruvika Harchand;14;29~40093;Bhanu Partap;14;30~40131;Manik Saini;14;31~40101;Kairav Mahal;14;31~40098;Jiya Thakur;14;32~40132;Jeevika Digra;14;32~40102;Harman Singh;14;33~40133;Sparsh Saini;14;33~40107;RidhamThakur;14;34~40134;Chetna Saini;14;34~40135;Divanshu Bhagat;14;35~40111;Lakshika Thakur;14;37~40114;Sehaj Kaur;14;38~40112;Kavitaj Singh;14;39~40120;Sharandeep;14;40~40127;Vijetashri Saini;14;41~40118;Paras Angural;14;42~40119;Yatin Aggarwal;14;43~40128;Nakul Saini;14;45~40122;Manyata;14;46~40129;Ajminder Singh;14;47~40123;Aditya Pratap Singh;14;48~40136;Pushpak Saini;14;50~25001;Prisha Thakur;15;1~25003;Viraaj Saini;15;4~25011;Jasnoor Singh;15;5~25004;Aarvit Saini;15;7~25005;Divyank Salaria;15;8~25040;Lavish Mahal;15;10~25006;Gursaaz Singh;15;11~25007;Nimrat Thakur;15;12~25008;Jishant Hans;15;13~25009;Tanish Bhagat;15;14~25010;Divyansh;15;15~25012;Amayra Saini;15;16~25013;Hartaj Singh Chouhan;15;17~25015;Vamika Thakur;15;18~25016;Kartik Salaria;15;19~25017;Gurish;15;20~25019;Rubika Kaur;15;21~25020;Viraj Thakur;15;22~25022;Anvi Thakur;15;24~25023;Daniela;15;25~25024;Alisha;15;26~25025;Shahir;15;27~25026;Suvansh Saini;15;28~25027;Rajveer;15;29~25028;Manveer Singh;15;30~25029;Mehak;15;31~25030;Kartik;15;32~25031;Vivaan Kumar;15;33~25032;Chahat Angural;15;34~25033;Aayana;15;35~25034;Ivaan Saini;15;36~25035;Kairavi Chalotra;15;37~25036;Devansh Lodhi;15;38~25037;Gurinder Singh Badanchia;15;39~25039;Baban Preet;15;40~25041;Kritika Kumari;15;41~25042;Riyanshi;15;42~25043;Rehan;15;43~25044;Harshita;15;44~25045;Shanaya Saini;15;45~25046;Kian Mahal;15;46~25047;Sukhman;15;47~25050;Satvik Katal;15;50~25051;Anaya Salaria;15;51~25052;KAVISH THAKUR;15;52~25053;Shivanya;15;53~25057;Divyansh Madgotra;15;57~25058;Saranshi Prashar;15;58~25059;Swayam;15;59~25062;Aarush Saini;15;62~25063;Nakul Hansa;15;63~25064;Prisha;15;64~25065;Aarush Saini;15;65~25066;Divyansh Saini;15;66~25067;Geetashu Malhotra;15;67~25068;Shaurya;15;68~25069;Diwakar Khajuriya;15;69~25071;Ananya Chandal;15;71~25072;Faith;15;72~25073;Knvi Sharia;15;73~26001;Radhya  Verma;16;1~26002;Eravati Kaur;16;2~26003;Smaira;16;3~26004;Yuvika Singh;16;6~26006;Mitansh Saini;16;6~26007;Akshit;16;7~26008;Niharika;16;8~26005;Shanvi Bhagat;16;9~26010;Yashvardhan Thakur;16;10~26012;Manyata;16;12~26013;Kudratvir Singh;16;13~26014;Kartik Thakur;16;14~26015;Biraj Singh;16;15~26016;Harnoor Sandhewal;16;16~26017;Yuvraj Sandhewal;16;17~26018;Dilraj Singh Chauhan;16;18~26019;Danish Thapa;16;19~26020;Sehaj;16;20~26021;Ditya Bedi;16;21~26022;Divisha Thakur;16;22~26024;Ekshita;16;24~26025;Gurpreet Majotra;16;25~26026;Idika  Sharma;16;26~26028;Krishav Singh;16;28~26029;Kritika;16;29~26030;Kultarn Singh;16;30~26031;Khushaant Rajput;16;31~26032;Reyansh Aggarwal;16;32~26033;Rudar;16;33~26034;Manjot Kaur;16;34~26035;Mannat Kaur;16;35~26036;Meetansh;16;36~26037;Nandani;16;37~26038;Naysan;16;38~26039;Saransh Mahajan;16;39~26040;Noor;16;40~26041;Prabhnoor;16;41~26042;Priyana;16;42~26044;Ritika;16;44~26045;Lakshita;16;45~26046;Rabhya;16;46~26048;Sayesha Kaushal;16;48~26049;Sehaj Deep;16;49~26050;Sehbaz Singh;16;50~26051;Shrija;16;51~26052;Shehbaaz Singh;16;52~26053;Suryaveer Saini;16;53~26054;Vidhan Kumar;16;54~26055;Himanya Sharma;16;55~26057;Gunveer Singh;16;57~26058;Chaksh  Pangotra;16;58~26059;Harjot Singh;16;59~26061;Jaivin Singh;16;61~26063;Kritika;16;63~26064;Advika Thakur;16;64~26065;Kavish Mahal;16;65~26066;Hinaya;16;66~26067;Arnaaz;16;67~26070;Ridhima Lodhi;16;70~26071;Samayra Sharma;16;71~26072;Priyansh Kumar;16;72~26073;Harjot;16;73~26074;Sohavi;16;74~26075;Asees  Kaur;16;75~26076;Amritpal Singh;16;76~26077;Inaya;16;77~26078;Diljot;16;78~26068;Samrath Kalotra;16;26068~24001;Kairavi;18;1~24002;Gurshabad Kaur;18;2~24003;Parth;18;3~24004;Aahana;18;4~24005;Biraj Singh;18;5~24006;Varsha;18;6~24007;Yuvraj Singh;18;7~24008;Amayra;18;8~24009;Vishal Kumar;18;9~24010;Dilpreet;18;10~24011;Niman Kaur;18;11~24012;Reyansh Katal;18;12~24013;Armaan Singh;18;13~24014;Seerat;18;14~24015;Kasish Thakur;18;15~24016;Dhruvika Salaria;18;16~24017;Subham Lodhi;18;17~24018;Ashwin Kumar;18;18~24019;Noordeep Sandhewal;18;19~24021;Bhavika Suri;18;21~24022;Yaksh;18;22~24023;Mayank;18;23~24042;Devansh Thakur;18;24~24024;Banu Partap Singh;18;25~24025;Tanveer Attri;18;26~24026;Khushjeet Singh;18;27~24028;Abhayjit Singh;18;28~24029;Dilraj Singh;18;29~24031;Paramveer Singh;18;31~24032;Navya Thakur;18;32~24033;Aarav Salaria;18;33~24034;Arik Shariya;18;34~24036;Shivin Bains;18;35~24037;Jihan Aloona;18;36~24038;Prikshit Saini;18;37~24041;Rishab Mahajan;18;38~24043;Naira;18;40~24044;Smaira;18;41~24046;Amaira;18;42~24047;Navtej Saini;18;43~24049;Aatish Vasudev;18;44~24051;Mayra;18;46~24053;Gurseerat Kaur;18;47~24055;Gornika Mahajan;18;49~24056;Sushant;18;50~24057;Ishaanvi;18;51~24058;Reyansh;18;52~24059;Rajveer Singh;18;53~24027;Shivansh Thakur;18;54~24062;Prince Chalotra;18;56~24063;Mayra;18;57~24064;Gurnaaz Bains;18;58~24065;Aayush Saini;18;65~24066;Harsh;18;66~24067;Avneet Sharma;18;67~24068;Aditya Singh;18;68~24069;Aatish Lodhi;18;69~20023;Fairy Jarangal;19;5~20030;Ayush Thakur;19;9~20058;Vanshika;19;10~20068;Sonampreet Kaur;19;11~20145;Riya;19;43~20143;Vansh;19;43~20144;Aditi;19;44~20146;Ravya;19;46~10003;Vihaan Mahajan;20;1~10015;Harshdeep Kaur;20;2~10029;Monish Chalotra;20;4~10140;Dhairyash Singh Harchand;20;9~26043;Radhika Saini;21;43~26060;Chahat;21;60~26062;Ishwain Saini;21;62~26069;Jaksh Kumar;21;69".split("~").map(r=>{const [id,name,classId,roll]=r.split(";"); return {id,name,classId,roll:Number(roll)||0};});
+
+const WORKER_URL = "https://result.result-300.workers.dev";
+let me = null; // {key, name}
+let currentDocId = null;
+let lockedRows = {}; // marks already saved for the current class/subject/term/head
+
+async function apiPost(path, body){
+  const r = await fetch(WORKER_URL + path, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(body || {})
+  });
+  return r.json();
+}
+async function apiGet(path){
+  const r = await fetch(WORKER_URL + path);
+  return r.json();
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active", s.id===id));
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active", b.dataset.screen===id));
+  document.getElementById("mainEl").scrollTo(0,0); window.scrollTo(0,0);
+}
+document.querySelectorAll(".tabbar button").forEach(b=>{
+  b.addEventListener("click", ()=>showScreen(b.dataset.screen));
+});
+document.getElementById("goMarksCard").addEventListener("click", ()=>showScreen("screenMarks"));
+
+function fillSelect(sel, map, placeholder){
+  sel.innerHTML = `<option value="">${placeholder}</option>` +
+    Object.entries(map).map(([id,name])=>`<option value="${id}">${name}</option>`).join("");
+}
+fillSelect(document.getElementById("selClass"), CLASSES, "Select class");
+fillSelect(document.getElementById("selSubject"), SUBJECTS, "Select subject");
+
+let selectedTerm = null, selectedHead = null;
+function buildSegmented(container, map, onPick, labelFn){
+  container.innerHTML = "";
+  Object.entries(map).forEach(([id, val])=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = labelFn ? labelFn(id, val) : val;
+    btn.dataset.id = id;
+    btn.addEventListener("click", ()=>{
+      [...container.children].forEach(c=>c.classList.remove("active"));
+      btn.classList.add("active");
+      onPick(id);
+    });
+    container.appendChild(btn);
+  });
+}
+buildSegmented(document.getElementById("segTerm"), TERMS, id=>{ selectedTerm = id; });
+buildSegmented(document.getElementById("segHead"), HEADS, id=>{ selectedHead = id; }, (id,h)=>`${h.name} (${h.max})`);
+document.getElementById("statClasses").textContent = Object.keys(CLASSES).length;
+document.getElementById("statHeads").textContent = Object.keys(HEADS).length;
+
+function keyFor(name){ return name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_"); }
+
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  const nameEl = document.getElementById("loginName");
+  const pinEl = document.getElementById("loginPin");
+  const status = document.getElementById("loginStatus");
+  const name = nameEl.value.trim();
+  const pin = pinEl.value.trim();
+  if(!name || pin.length !== 4 || !/^\d{4}$/.test(pin)){
+    status.textContent = "Enter your name and your 4-digit PIN."; status.className="status err"; return;
+  }
+  status.textContent = "Checking...";
+  try {
+    const res = await apiPost("/api/login", {name, pin});
+    if(!res.ok){
+      status.textContent = res.reason === "not_found"
+        ? "Not registered yet — ask the admin to add you."
+        : "Wrong PIN.";
+      status.className="status err"; return;
+    }
+    me = {key: res.key, name: res.name};
+    document.getElementById("whoBar").textContent = "Signed in as " + me.name;
+    document.getElementById("loginStage").classList.add("hidden");
+    document.getElementById("appArea").classList.remove("hidden");
+    document.getElementById("tabbar").classList.remove("hidden");
+    document.getElementById("homeGreeting").textContent = "Hi, " + me.name.split(" ")[0];
+    document.getElementById("homeAvatar").textContent = me.name.trim()[0].toUpperCase();
+    showScreen("screenHome");
+  } catch(err){
+    status.textContent = "Could not sign in: " + (err && err.message ? err.message : err);
+    status.className = "status err";
+  }
+});
+
+document.getElementById("adminToggle").addEventListener("click", (e)=>{
+  e.preventDefault();
+  document.getElementById("adminPanel").classList.toggle("hidden");
+});
+
+document.getElementById("addStaffBtn").addEventListener("click", async ()=>{
+  const status = document.getElementById("adminStatus");
+  const adminPass = document.getElementById("adminPass").value;
+  const name = document.getElementById("newStaffName").value.trim();
+  const pin = document.getElementById("newStaffPin").value.trim();
+  if(!name || pin.length !== 4 || !/^\d{4}$/.test(pin)){
+    status.textContent = "Enter a name and a 4-digit PIN."; status.className="status err"; return;
+  }
+  status.textContent = "Adding...";
+  try {
+    const res = await apiPost("/api/admin/addStaff", {adminPass, name, pin});
+    if(!res.ok){
+      status.textContent = res.reason === "bad_passcode" ? "Wrong admin passcode." : "Could not add.";
+      status.className="status err"; return;
+    }
+    status.textContent = `Added ${name}. Share their PIN with them.`; status.className="status ok";
+    document.getElementById("newStaffName").value = "";
+    document.getElementById("newStaffPin").value = "";
+  } catch(err){
+    status.textContent = "Could not add: " + (err && err.message ? err.message : err);
+    status.className = "status err";
+  }
+});
+
+document.getElementById("loadBtn").addEventListener("click", async ()=>{
+  const classId = document.getElementById("selClass").value;
+  const subjId = document.getElementById("selSubject").value;
+  const termId = selectedTerm;
+  const headId = selectedHead;
+  if(!classId || !subjId || !termId || !headId){ alert("Select class, subject, term and head first."); return; }
+
+  const roster = STUDENTS.filter(s=>s.classId===classId).sort((a,b)=>a.roll-b.roll);
+  const body = document.getElementById("stuBody");
+  body.innerHTML = "";
+  const maxMark = HEADS[headId].max;
+
+  currentDocId = `${classId}_${subjId}_${termId}_${headId}`;
+  let existing = {};
+  lockedRows = {};
+  document.getElementById("lastSaved").textContent = "";
+  try {
+    const res = await apiGet("/api/marks/"+currentDocId);
+    const rows = res.rows || {};
+    let latestWho = null, latestWhen = 0;
+    Object.entries(rows).forEach(([sid,cell])=>{
+      existing[sid] = cell.marks;
+      if(cell.at && cell.at > latestWhen){ latestWhen = cell.at; latestWho = cell.by; }
+    });
+    lockedRows = existing;
+    if(latestWho) document.getElementById("lastSaved").textContent = `Last saved by ${latestWho} · ${new Date(latestWhen).toLocaleString()}`;
+  } catch(e){}
+
+  roster.forEach(s=>{
+    const tr = document.createElement("tr");
+    const has = existing[s.id] !== undefined;
+    const val = has ? existing[s.id] : "";
+    const cell = has
+      ? `<span class="locked" title="Already saved">${val}${LOCK_ICON}</span>`
+      : `<input type="number" min="0" max="${maxMark}" step="0.5" data-sid="${s.id}" value="">`;
+    tr.innerHTML = `<td class="roll">${s.roll||""}</td><td>${s.name}</td><td class="marks">${cell}</td>`;
+    body.appendChild(tr);
+  });
+
+  document.getElementById("entryTitle").textContent =
+    `${CLASSES[classId]} · ${SUBJECTS[subjId]} · ${TERMS[termId]} · ${HEADS[headId].name} (${maxMark})`;
+  document.getElementById("entryCard").classList.remove("hidden");
+});
+
+document.getElementById("saveBtn").addEventListener("click", async ()=>{
+  const status = document.getElementById("saveStatus");
+  if(!currentDocId || !me){ return; }
+  const inputs = document.querySelectorAll("#stuBody input[data-sid]");
+  const entries = {};
+  inputs.forEach(inp=>{
+    if(inp.value !== "") entries[inp.dataset.sid] = Number(inp.value);
+  });
+  if(Object.keys(entries).length === 0){ status.textContent = "No new marks to save."; status.className="status"; return; }
+  status.textContent = "Saving...";
+  try {
+    const res = await apiPost("/api/marks/"+currentDocId, {entries, by: me.name});
+    if(!res.ok){ status.textContent = "Save failed."; status.className="status err"; showToast("Save failed", true); return; }
+    status.textContent = "Saved."; status.className = "status ok";
+    showToast(`${Object.keys(entries).length} marks saved`);
+    document.getElementById("lastSaved").textContent = `Last saved by ${me.name} · ${new Date().toLocaleString()}`;
+  } catch(err){
+    status.textContent = "Save failed: " + (err && err.message ? err.message : err);
+    status.className = "status err";
+  }
+});
+
+document.getElementById("exportBtn").addEventListener("click", async ()=>{
+  const status = document.getElementById("exportStatus");
+  const adminPass = prompt("Admin passcode:");
+  if(adminPass === null) return;
+  status.textContent = "Collecting...";
+  try {
+    const r = await fetch(WORKER_URL + "/api/export", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({adminPass})
+    });
+    if(!r.ok){ status.textContent = "Wrong passcode or export failed."; status.className="status err"; return; }
+    const csv = await r.text();
+    try {
+      const downloads = await claude.use("downloads");
+      await downloads.save({filename:"marks_export.csv", data:csv});
+    } catch(e){
+      const blob = new Blob([csv], {type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "marks_export.csv"; a.click();
+    }
+    status.textContent = "Export ready."; status.className="status ok";
+  } catch(err){
+    status.textContent = "Export failed: " + (err && err.message ? err.message : err);
+    status.className = "status err";
+  }
+});
+</script>
+</body>
+</html>
