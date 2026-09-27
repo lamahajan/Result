@@ -111,51 +111,7 @@ td.marks .locked{display:inline-flex; align-items:center; gap:6px; color:var(--m
         <button class="btn pri" id="loginBtn">Sign in</button>
         <div class="status" id="loginStatus"></div>
       </div>
-      <div style="text-align:center;"><button class="link" id="goAdmin">Admin login →</button></div>
-    </div>
-  </div>
-</section>
-
-<!-- ADMIN -->
-<section class="screen" id="scrAdmin">
-  <div class="wrap">
-    <div class="topbar"><button class="back" id="adminBack">‹</button><h1>Admin</h1></div>
-
-    <div class="card fu" id="adminGateCard">
-      <h2 style="font-size:1.05rem;">Enter admin passcode</h2>
-      <div class="field" style="margin-top:14px;"><input id="adminPass" type="password" placeholder="Passcode" autocomplete="off"></div>
-      <button class="btn pri" id="adminUnlockBtn">Continue</button>
-      <div class="status" id="adminGateStatus"></div>
-    </div>
-
-    <div class="hidden" id="adminForm">
-      <div class="card fu">
-        <h2 style="font-size:1.05rem;">Add a teacher</h2>
-        <div class="row2">
-          <div class="field"><label>Name</label><input id="newStaffName" autocomplete="off"></div>
-          <div class="field"><label>PIN</label><input id="newStaffPin" inputmode="numeric" maxlength="4" autocomplete="off"></div>
-        </div>
-        <label>Assign class + subject</label>
-        <div class="row2" style="margin-bottom:8px;">
-          <select id="asgClass"></select>
-          <select id="asgSubject" disabled></select>
-        </div>
-        <button class="btn sec" id="addAssignBtn" style="margin-bottom:14px;">+ Add assignment</button>
-        <div id="assignList"></div>
-
-        <div class="toggle-row">
-          <div><div class="lbl">Show all students on reopen</div><div class="desc">Off = already-saved students disappear from the list</div></div>
-          <label class="switch"><input type="checkbox" id="toggleShowAll"><span class="track"></span><span class="knob"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="lbl">Allow editing saved marks</div><div class="desc">Only matters when the toggle above is on</div></div>
-          <label class="switch"><input type="checkbox" id="toggleEdit"><span class="track"></span><span class="knob"></span></label>
-        </div>
-
-        <div style="height:14px"></div>
-        <button class="btn pri" id="createStaffBtn">Create teacher login</button>
-        <div class="status" id="adminFormStatus"></div>
-      </div>
+      <div style="text-align:center;"><button class="link" id="goAdmin">Admin? Use the separate admin page →</button></div>
     </div>
   </div>
 </section>
@@ -283,71 +239,7 @@ document.getElementById("logoutBtn").addEventListener("click", ()=>{
   showScreen("scrLogin");
 });
 
-// ---------- admin ----------
-document.getElementById("goAdmin").addEventListener("click", ()=> showScreen("scrAdmin"));
-document.getElementById("adminBack").addEventListener("click", ()=> showScreen("scrLogin"));
-
-function fillSelect(sel, map, placeholder){
-  sel.innerHTML = `<option value="">${placeholder}</option>` + Object.entries(map).map(([id,n])=>`<option value="${id}">${n}</option>`).join("");
-}
-fillSelect(document.getElementById("asgClass"), CLASSES, "Class");
-document.getElementById("asgClass").addEventListener("change", e=>{
-  const classId = e.target.value;
-  const subjSel = document.getElementById("asgSubject");
-  const ids = [...(CLASS_SUBJECTS[classId]||[])];
-  if(!classId || ids.length===0){ subjSel.innerHTML=`<option value="">Subject</option>`; subjSel.disabled=true; return; }
-  fillSelect(subjSel, Object.fromEntries(ids.map(id=>[id, SUBJECTS[id]||id])), "Subject");
-  subjSel.disabled = false;
-});
-
-let pendingAssignments = [];
-function renderAssignList(){
-  const wrap = document.getElementById("assignList");
-  wrap.innerHTML = "";
-  pendingAssignments.forEach((a,i)=>{
-    const row = document.createElement("div"); row.className="assign-row";
-    row.innerHTML = `<span>${CLASSES[a.classId]} · ${SUBJECTS[a.subjectId]}</span><button data-i="${i}">×</button>`;
-    row.querySelector("button").addEventListener("click", ()=>{ pendingAssignments.splice(i,1); renderAssignList(); });
-    wrap.appendChild(row);
-  });
-}
-document.getElementById("addAssignBtn").addEventListener("click", ()=>{
-  const classId = document.getElementById("asgClass").value;
-  const subjectId = document.getElementById("asgSubject").value;
-  if(!classId || !subjectId){ showToast("Pick a class and subject first", true); return; }
-  if(pendingAssignments.some(a=>a.classId===classId && a.subjectId===subjectId)) return;
-  pendingAssignments.push({classId, subjectId});
-  renderAssignList();
-});
-
-document.getElementById("adminUnlockBtn").addEventListener("click", ()=>{
-  const pass = document.getElementById("adminPass").value;
-  if(!pass){ return; }
-  document.getElementById("adminGateCard").classList.add("hidden");
-  document.getElementById("adminForm").classList.remove("hidden");
-  document.getElementById("adminForm").dataset.pass = pass; // held only for the create call below
-});
-
-document.getElementById("createStaffBtn").addEventListener("click", async ()=>{
-  const status = document.getElementById("adminFormStatus");
-  const adminPass = document.getElementById("adminForm").dataset.pass || "";
-  const name = document.getElementById("newStaffName").value.trim();
-  const pin = document.getElementById("newStaffPin").value.trim();
-  if(!name || pin.length!==4 || !/^\d{4}$/.test(pin)){ status.textContent="Enter a name and 4-digit PIN."; status.className="status err"; return; }
-  if(pendingAssignments.length===0){ status.textContent="Add at least one class+subject."; status.className="status err"; return; }
-  status.textContent = "Creating...";
-  try{
-    const res = await apiPost("/api/admin/addStaff", {
-      adminPass, name, pin, assignments: pendingAssignments,
-      showAllOnReopen: document.getElementById("toggleShowAll").checked,
-      editingAllowed: document.getElementById("toggleEdit").checked
-    });
-    if(!res.ok){ status.textContent = res.reason==="bad_passcode" ? "Wrong admin passcode." : "Could not create."; status.className="status err"; return; }
-    status.textContent = `Created ${name}. Share their PIN with them.`; status.className="status ok";
-    document.getElementById("newStaffName").value=""; document.getElementById("newStaffPin").value="";
-    pendingAssignments = []; renderAssignList();
-  }catch(err){ status.textContent="Could not create."; status.className="status err"; }
-});
+document.getElementById("goAdmin").addEventListener("click", ()=>{ showToast("Open the separate admin page for that."); });
 
 // ---------- marks entry ----------
 buildTermSeg();
