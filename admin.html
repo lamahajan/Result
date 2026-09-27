@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Marks Entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f2f7; --card:#ffffff; --bdr:rgba(0,0,0,.08); --bdr2:rgba(0,0,0,.05);
+  --txt:#1d1d1f; --sub:#6e6e73; --mut:#86868b; --acc:#0071e3; --accAlt:#0064cc;
+  --accS:rgba(0,113,227,.08); --grn:#34c759; --red:#ff3b30;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg:#0D0F14; --card:#181B24; --bdr:#1E2130; --bdr2:#2A2E42; --txt:#F1F2F6; --sub:#9DA3B4; --mut:#4B5270; --accS:rgba(0,113,227,.13); }
+}
+:root[data-theme="dark"]{ --bg:#0D0F14; --card:#181B24; --bdr:#1E2130; --bdr2:#2A2E42; --txt:#F1F2F6; --sub:#9DA3B4; --mut:#4B5270; --accS:rgba(0,113,227,.13); }
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{background:var(--bg); font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:var(--txt); min-height:100%; -webkit-font-smoothing:antialiased;}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fu{animation:fu .2s ease}
+.wrap{max-width:480px; margin:0 auto; padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));}
+.topbar{display:flex; align-items:center; gap:10px; margin-bottom:18px; min-height:32px;}
+.topbar h1{font-size:1.1rem; font-weight:800; letter-spacing:-.01em; flex:1;}
+.card{background:var(--card); border:1px solid var(--bdr); border-radius:18px; padding:20px; margin-bottom:14px; box-shadow:0 1px 8px rgba(0,0,0,.04);}
+.card h2{font-size:1.05rem; font-weight:800; letter-spacing:-.02em; margin-bottom:4px;}
+.card .sub{color:var(--sub); font-size:.86rem; margin-bottom:18px;}
+label{display:block; font-size:.75rem; font-weight:800; color:var(--sub); letter-spacing:.02em; margin-bottom:6px;}
+.field{margin-bottom:14px;}
+input, select{
+  font:inherit; font-size:.95rem; background:var(--card); border:1px solid var(--bdr); border-radius:14px;
+  color:var(--txt); padding:11px 14px; width:100%; outline:none; transition:border-color .15s;
+  -webkit-appearance:none; appearance:none;
+}
+input:focus, select:focus{border-color:var(--acc);}
+select{
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236e6e73'%3e%3cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3e%3c/svg%3e");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:34px;
+}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+button.btn{font:inherit; font-weight:700; font-size:.92rem; border:none; border-radius:980px; padding:12px 20px; cursor:pointer; transition:transform .12s;}
+button.btn:active{transform:scale(.97);}
+button.pri{background:linear-gradient(135deg,var(--acc),var(--accAlt)); color:#fff; box-shadow:0 2px 12px rgba(0,113,227,.28); width:100%;}
+button.sec{background:var(--card); color:var(--txt); border:1px solid var(--bdr); width:100%;}
+.assign-row{display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--bdr); border-radius:12px; padding:8px 10px; margin-bottom:8px; font-size:.82rem;}
+.assign-row span{flex:1;}
+.assign-row button{background:none; border:none; color:var(--red); font-weight:800; cursor:pointer; font-size:1.1rem; line-height:1;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; padding:10px 2px; border-top:1px solid var(--bdr2);}
+.toggle-row:first-of-type{border-top:none;}
+.toggle-row .lbl{font-size:.86rem; font-weight:600;}
+.toggle-row .desc{font-size:.75rem; color:var(--sub); margin-top:1px;}
+.switch{position:relative; width:44px; height:26px; flex:none;}
+.switch input{opacity:0; width:100%; height:100%; margin:0; position:absolute; cursor:pointer; z-index:1;}
+.switch .track{position:absolute; inset:0; background:var(--bdr); border-radius:999px; transition:background .15s;}
+.switch .knob{position:absolute; top:2px; left:2px; width:22px; height:22px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .15s;}
+.switch input:checked + .track{background:var(--grn);}
+.switch input:checked ~ .knob{transform:translateX(18px);}
+.status{font-size:.85rem; margin-top:10px; min-height:1.1em; color:var(--sub);}
+.status.ok{color:var(--grn);} .status.err{color:var(--red);}
+.hidden{display:none !important;}
+.toast{position:fixed; top:calc(18px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%) translateY(-8px); background:var(--red); color:#fff; padding:10px 20px; border-radius:30px; font-size:.85rem; font-weight:800; z-index:200; opacity:0; transition:opacity .2s, transform .2s; white-space:nowrap;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="toastEl" class="toast"></div>
+
+<div class="wrap">
+  <div class="topbar"><h1>Admin — Marks Entry</h1></div>
+
+  <div class="card fu" id="gateCard">
+    <h2>Enter admin passcode</h2>
+    <div class="field" style="margin-top:14px;"><input id="adminPass" type="password" placeholder="Passcode" autocomplete="off"></div>
+    <button class="btn pri" id="unlockBtn">Continue</button>
+    <div class="status" id="gateStatus"></div>
+  </div>
+
+  <div class="hidden" id="formArea">
+    <div class="card fu">
+      <h2>Add a teacher</h2>
+      <div class="sub">Assign the classes and subjects this teacher should enter marks for.</div>
+      <div class="row2">
+        <div class="field"><label>Name</label><input id="newStaffName" autocomplete="off"></div>
+        <div class="field"><label>PIN</label><input id="newStaffPin" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+      </div>
+      <label>Assign class + subject</label>
+      <div class="row2" style="margin-bottom:8px;">
+        <select id="asgClass"></select>
+        <select id="asgSubject" disabled></select>
+      </div>
+      <button class="btn sec" id="addAssignBtn" style="margin-bottom:14px;">+ Add assignment</button>
+      <div id="assignList"></div>
+
+      <div class="toggle-row">
+        <div><div class="lbl">Show all students on reopen</div><div class="desc">Off = already-saved students disappear from the list</div></div>
+        <label class="switch"><input type="checkbox" id="toggleShowAll"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div><div class="lbl">Allow editing saved marks</div><div class="desc">Only matters when the toggle above is on</div></div>
+        <label class="switch"><input type="checkbox" id="toggleEdit"><span class="track"></span><span class="knob"></span></label>
+      </div>
+
+      <div style="height:14px"></div>
+      <button class="btn pri" id="createStaffBtn">Create teacher login</button>
+      <div class="status" id="formStatus"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function parsePairs(s){ const o={}; s.split("|").forEach(p=>{const i=p.indexOf(":"); o[p.slice(0,i)]=p.slice(i+1);}); return o; }
+const CLASSES = parsePairs("1:11th Science|2:11th Commerce|3:12th Commerce|4:12th Science|5:10th|6:1st|7:2nd|8:3rd|9:4th|10:5th|11:6th|12:7th|13:8th|14:9th|15:Jr.KG|16:Nursery|18:Sr.KG|19:11th|20:12th|21:Pre Nursery");
+const SUBJECTS = parsePairs("1:Chemistry|2:Hindi|3:Punjabi|4:Mathematics|5:Science|6:SSt|7:Computer|8:G K|9:EVS|10:English|11:Physics|12:Rhymes|13:Biology|14:Economics|15:Accountancy|16:Business Studies|17:Art & Craft|18:Physical Education|19:Conversation|20:Story Telling|21:Moral Science|22:ALL Subject|23:Good Manners");
+const CLASS_SUBJECTS = {};
+"10:10:80:0|10:2:80:0|10:3:80:0|10:4:80:0|10:5:80:0|10:6:80:0|10:7:80:0|10:8:80:0|11:10:80:0|11:2:80:0|11:3:80:0|11:4:80:0|11:5:80:0|11:6:80:0|11:7:80:0|11:8:80:0|12:10:80:0|12:2:80:0|12:3:80:0|12:4:80:0|12:5:80:0|12:6:80:0|12:7:80:0|13:10:80:0|13:2:80:0|13:3:80:0|13:4:80:0|13:5:80:0|13:6:80:0|13:7:80:0|14:10:80:0|14:2:80:0|14:3:80:0|14:4:80:0|14:5:80:0|14:6:80:0|15:10:100:0|15:12:100:0|15:17:100:0|15:19:100:0|15:20:100:0|15:23:100:0|15:2:100:0|15:4:100:0|15:8:100:0|15:9:100:0|16:10:100:0|16:12:100:0|16:17:100:0|16:19:100:0|16:2:100:0|16:4:100:0|16:8:100:0|1:10:80:0|1:11:70:0|1:13:70:0|1:18:70:0|1:1:70:0|1:4:80:0|2:10:80:0|2:14:80:0|2:15:80:0|2:16:80:0|2:18:70:0|3:10:80:0|3:14:80:0|3:15:80:0|3:16:80:0|3:18:70:0|4:10:80:0|4:11:70:0|4:13:70:0|4:18:70:0|4:1:70:0|4:4:80:0|5:10:80:0|5:2:80:0|5:3:80:0|5:4:80:0|5:5:80:0|5:6:80:0|6:10:80:27|6:17:80:27|6:21:80:27|6:2:80:27|6:3:80:27|6:4:80:27|6:7:80:27|6:8:80:27|6:9:80:27|7:10:80:27|7:17:80:27|7:21:80:27|7:2:80:27|7:3:80:27|7:4:80:27|7:7:80:27|7:8:80:27|7:9:80:27|8:10:80:0|8:2:80:0|8:3:80:0|8:4:80:0|8:5:80:0|8:6:80:0|8:7:80:0|8:8:80:0|9:10:80:0|9:2:80:0|9:3:80:0|9:4:80:0|9:5:80:0|9:6:80:0|9:7:80:0|9:8:80:0".split("|").forEach(row=>{
+  const [classId, subjId] = row.split(":");
+  (CLASS_SUBJECTS[classId] = CLASS_SUBJECTS[classId] || new Set()).add(subjId);
+});
+
+const WORKER_URL = "https://result.result-300.workers.dev";
+let toastTimer=null;
+function showToast(msg, isErr){
+  const t=document.getElementById("toastEl");
+  t.textContent=msg; t.className="toast show";
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"), 2600);
+}
+async function apiPost(path, body){
+  const r = await fetch(WORKER_URL + path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body||{})});
+  return r.json();
+}
+
+function fillSelect(sel, map, placeholder){
+  sel.innerHTML = `<option value="">${placeholder}</option>` + Object.entries(map).map(([id,n])=>`<option value="${id}">${n}</option>`).join("");
+}
+fillSelect(document.getElementById("asgClass"), CLASSES, "Class");
+document.getElementById("asgClass").addEventListener("change", e=>{
+  const classId = e.target.value;
+  const subjSel = document.getElementById("asgSubject");
+  const ids = [...(CLASS_SUBJECTS[classId]||[])];
+  if(!classId || ids.length===0){ subjSel.innerHTML=`<option value="">Subject</option>`; subjSel.disabled=true; return; }
+  fillSelect(subjSel, Object.fromEntries(ids.map(id=>[id, SUBJECTS[id]||id])), "Subject");
+  subjSel.disabled = false;
+});
+
+let pendingAssignments = [];
+function renderAssignList(){
+  const wrap = document.getElementById("assignList");
+  wrap.innerHTML = "";
+  pendingAssignments.forEach((a,i)=>{
+    const row = document.createElement("div"); row.className="assign-row";
+    row.innerHTML = `<span>${CLASSES[a.classId]} · ${SUBJECTS[a.subjectId]}</span><button data-i="${i}">×</button>`;
+    row.querySelector("button").addEventListener("click", ()=>{ pendingAssignments.splice(i,1); renderAssignList(); });
+    wrap.appendChild(row);
+  });
+}
+document.getElementById("addAssignBtn").addEventListener("click", ()=>{
+  const classId = document.getElementById("asgClass").value;
+  const subjectId = document.getElementById("asgSubject").value;
+  if(!classId || !subjectId){ showToast("Pick a class and subject first"); return; }
+  if(pendingAssignments.some(a=>a.classId===classId && a.subjectId===subjectId)) return;
+  pendingAssignments.push({classId, subjectId});
+  renderAssignList();
+});
+
+document.getElementById("unlockBtn").addEventListener("click", ()=>{
+  const pass = document.getElementById("adminPass").value;
+  const status = document.getElementById("gateStatus");
+  if(!pass){ status.textContent="Enter the passcode."; status.className="status err"; return; }
+  document.getElementById("gateCard").classList.add("hidden");
+  document.getElementById("formArea").classList.remove("hidden");
+  document.getElementById("formArea").dataset.pass = pass; // sent with the create call; worker verifies it
+});
+
+document.getElementById("createStaffBtn").addEventListener("click", async ()=>{
+  const status = document.getElementById("formStatus");
+  const adminPass = document.getElementById("formArea").dataset.pass || "";
+  const name = document.getElementById("newStaffName").value.trim();
+  const pin = document.getElementById("newStaffPin").value.trim();
+  if(!name || pin.length!==4 || !/^\d{4}$/.test(pin)){ status.textContent="Enter a name and 4-digit PIN."; status.className="status err"; return; }
+  if(pendingAssignments.length===0){ status.textContent="Add at least one class+subject."; status.className="status err"; return; }
+  status.textContent = "Creating...";
+  try{
+    const res = await apiPost("/api/admin/addStaff", {
+      adminPass, name, pin, assignments: pendingAssignments,
+      showAllOnReopen: document.getElementById("toggleShowAll").checked,
+      editingAllowed: document.getElementById("toggleEdit").checked
+    });
+    if(!res.ok){
+      status.textContent = res.reason==="bad_passcode" ? "Wrong admin passcode." : "Could not create.";
+      status.className="status err";
+      if(res.reason==="bad_passcode"){ document.getElementById("formArea").classList.add("hidden"); document.getElementById("gateCard").classList.remove("hidden"); }
+      return;
+    }
+    status.textContent = `Created ${name}. Share their PIN with them.`; status.className="status ok";
+    document.getElementById("newStaffName").value=""; document.getElementById("newStaffPin").value="";
+    pendingAssignments = []; renderAssignList();
+  }catch(err){ status.textContent="Could not create."; status.className="status err"; }
+});
+</script>
+</body>
+</html>
