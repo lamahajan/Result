@@ -63,6 +63,13 @@ button.sec{background:var(--card); color:var(--txt); border:1px solid var(--bdr)
 .hidden{display:none !important;}
 .toast{position:fixed; top:calc(18px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%) translateY(-8px); background:var(--red); color:#fff; padding:10px 20px; border-radius:30px; font-size:.85rem; font-weight:800; z-index:200; opacity:0; transition:opacity .2s, transform .2s; white-space:nowrap;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ── Desktop / tablet layout ── */
+@media (min-width:768px){
+  .wrap{max-width:600px; padding-top:48px;}
+  .card{padding:26px 28px;}
+  .topbar h1{font-size:1.3rem;}
+}
 </style>
 </head>
 <body>
