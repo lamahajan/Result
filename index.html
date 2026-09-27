@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Lotus International School — Faculty Portal</title>
+<title>Academics Portal - Lotus International School</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -138,7 +138,7 @@ body {
 /* ── Main Stage ── */
 .main-stage {
   flex: 1;
-  padding: 24px 28px 48px;
+  padding: 24px 28px 100px;
   overflow-y: auto;
   max-width: 1400px;
   margin: 0 auto;
@@ -429,7 +429,7 @@ body {
 
 /* ── Mobile Layout ── */
 .mobile-bottom-bar {
-  display: none;
+  display: flex;
   position: fixed;
   bottom: 0; left: 0; right: 0;
   background: var(--surface);
@@ -439,10 +439,14 @@ body {
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 800;
   justify-content: space-around;
+  max-width: 480px;
+  margin: 0 auto;
+  border-radius: 20px 20px 0 0;
+}
+@media (min-width: 821px) {
+  .mobile-bottom-bar { justify-content: center; gap: 36px; }
 }
 @media (max-width: 820px) {
-  .sidebar { display: none !important; }
-  .mobile-bottom-bar { display: flex; }
   .main-stage { padding: 16px 16px 90px; }
 }
 .m-nav-item {
@@ -526,54 +530,21 @@ body {
 <!-- ================= 2. AUTHENTICATED APP SHELL ================= -->
 <div id="portalShell" class="app-layout hidden">
   
-  <aside class="sidebar">
-    <div class="school-brand">
-      <div class="brand-icon">🪷</div>
-      <div class="brand-title">
-        <h2>Lotus Int'l School</h2>
-        <p>Dinanagar • Learn Grow Excel</p>
-      </div>
-    </div>
-
-    <nav class="side-nav">
-      <button class="nav-item active" id="sideNavHome" onclick="navigateTab('home')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Home</span>
-      </button>
-      <button class="nav-item" id="sideNavMarks" onclick="navigateTab('marks')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        <span>Marks Feeding</span>
-      </button>
-      <button class="nav-item" onclick="navigateTab('home')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>My Classes</span>
-      </button>
-      <button class="nav-item" onclick="showToast('Timetable schedule loaded')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Timetable</span>
-      </button>
-      <button class="nav-item" onclick="showToast('Profile Section')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Profile</span>
-      </button>
-    </nav>
-
-    <button class="nav-item" style="color: var(--apple-red); margin-top: auto;" onclick="logout()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      <span>Logout</span>
-    </button>
-  </aside>
-
   <main class="main-stage">
     
     <div class="top-bar">
       <div><span class="date-chip" id="currentDateChip">Date Loading...</span></div>
-      <div class="top-user-pill">
-        <div class="top-avatar" id="navAvatar">TS</div>
-        <div>
-          <div style="font-size: 0.85rem; font-weight: 800;" id="navTeacherName">Teacher</div>
-          <div style="font-size: 0.72rem; color: var(--txt-muted); font-weight: 600;">Faculty Member</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="top-user-pill">
+          <div class="top-avatar" id="navAvatar">TS</div>
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 800;" id="navTeacherName">Teacher</div>
+            <div style="font-size: 0.72rem; color: var(--txt-muted); font-weight: 600;">Faculty Member</div>
+          </div>
         </div>
+        <button onclick="logout()" title="Logout" style="display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; border:1px solid var(--border); background: var(--surface); color: var(--apple-red); cursor:pointer; flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
       </div>
     </div>
 
@@ -634,31 +605,6 @@ body {
         </div>
 
         <div>
-          <div class="apple-panel">
-            <div class="panel-head">
-              <span style="font-size: 1.2rem;">⚡️</span>
-              <h3>Quick Actions</h3>
-            </div>
-            <div class="quick-action-list">
-              <div class="action-item" onclick="navigateTab('marks')">
-                <div class="action-left"><span>📊</span><span>View Marks Roster</span></div>
-                <span>›</span>
-              </div>
-              <div class="action-item" onclick="showToast('Edit mode enabled for permitted subjects')">
-                <div class="action-left"><span>📝</span><span>Edit Previously Entered Marks</span></div>
-                <span>›</span>
-              </div>
-              <div class="action-item" onclick="showToast('Sample format downloaded')">
-                <div class="action-left"><span>📥</span><span>Download Sample Format</span></div>
-                <span>›</span>
-              </div>
-              <div class="action-item" onclick="showToast('Half-yearly guidelines active')">
-                <div class="action-left"><span>ℹ️</span><span>Guidelines for Marks Feeding</span></div>
-                <span>›</span>
-              </div>
-            </div>
-          </div>
-
           <div class="help-card">
             <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 4px;">Need Help?</h4>
             <p style="font-size: 0.8rem; color: var(--txt-muted); margin-bottom: 12px;">For any issues related to marks feeding, contact examination cell.</p>
@@ -762,7 +708,7 @@ body {
 </div>
 
 <!-- ================= MOBILE BAR ================= -->
-<div class="mobile-bottom-bar" id="mobileBar" style="display: none;">
+<div class="mobile-bottom-bar" id="mobileBar">
   <button class="m-nav-item active" id="mNavHome" onclick="navigateTab('home')">
     <span style="font-size: 1.2rem;">🏠</span>
     <span>Home</span>
@@ -864,21 +810,17 @@ function getInitials(name) {
 function navigateTab(tab){
   document.getElementById("tabHome").classList.remove("active");
   document.getElementById("tabMarks").classList.remove("active");
-  document.getElementById("sideNavHome").classList.remove("active");
-  document.getElementById("sideNavMarks").classList.remove("active");
   document.getElementById("mNavHome").classList.remove("active");
   document.getElementById("mNavMarks").classList.remove("active");
 
   if(tab === 'home'){
     document.getElementById("tabHome").classList.add("active");
-    document.getElementById("sideNavHome").classList.add("active");
     document.getElementById("mNavHome").classList.add("active");
   } else if(tab === 'marks'){
     if(!activeAssign && me && me.assignments && me.assignments.length){
       activeAssign = me.assignments[0];
     }
     document.getElementById("tabMarks").classList.add("active");
-    document.getElementById("sideNavMarks").classList.add("active");
     document.getElementById("mNavMarks").classList.add("active");
     if(!selectedTerm) openTermSelectModal();
   }
@@ -896,10 +838,11 @@ function populateDashboard(){
 
   const assignedClassIds = new Set(assignments.map(a => a.classId));
   const myStudents = STUDENTS.filter(s => assignedClassIds.has(s.classId));
-  const totalStu = myStudents.length || 28;
+  const totalStu = myStudents.length;
   document.getElementById("statTotalStudents").textContent = totalStu;
-  document.getElementById("statMarksPending").textContent = Math.round(totalStu * 0.4);
-  document.getElementById("statMarksSubmitted").textContent = Math.round(totalStu * 0.6);
+  document.getElementById("statMarksPending").textContent = "…";
+  document.getElementById("statMarksSubmitted").textContent = "…";
+  updateMarksStats(assignments);
 
   // Populate Dropdown for Quick Class
   const classSelect = document.getElementById("quickClassSelect");
@@ -930,6 +873,31 @@ function populateDashboard(){
     `;
     actBody.appendChild(tr);
   });
+}
+
+// Fetch actual saved-marks counts per assignment from the worker so the
+// homescreen Pending/Submitted stats reflect real data, not a guess.
+async function updateMarksStats(assignments){
+  if(!assignments.length){
+    document.getElementById("statMarksPending").textContent = "0";
+    document.getElementById("statMarksSubmitted").textContent = "0";
+    return;
+  }
+  const term = selectedTerm || Object.keys(TERMS)[0];
+  let totalNeeded = 0;
+  let totalFilled = 0;
+  await Promise.all(assignments.map(async (a) => {
+    const classSize = STUDENTS.filter(s => s.classId === a.classId).length;
+    totalNeeded += classSize;
+    try {
+      const docId = `${a.classId}_${a.subjectId}_${term}_${HY_HEAD}`;
+      const res = await apiGet("/api/marks/" + docId);
+      const filled = res && res.rows ? Object.keys(res.rows).length : 0;
+      totalFilled += Math.min(filled, classSize);
+    } catch(e){ /* offline/unreachable — count as not yet filled */ }
+  }));
+  document.getElementById("statMarksSubmitted").textContent = totalFilled;
+  document.getElementById("statMarksPending").textContent = Math.max(0, totalNeeded - totalFilled);
 }
 
 function handleClassChange(){
@@ -1147,9 +1115,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 function unlockPortal(){
   document.getElementById("loginView").classList.add("hidden");
   document.getElementById("portalShell").classList.remove("hidden");
-  if(window.innerWidth <= 820) {
-    document.getElementById("mobileBar").style.display = "flex";
-  }
+  document.getElementById("mobileBar").style.display = "flex";
   populateDashboard();
   navigateTab('home');
 }
