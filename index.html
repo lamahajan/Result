@@ -83,6 +83,14 @@ td.marks .locked{display:inline-flex; align-items:center; gap:6px; color:var(--m
 .status{font-size:.85rem; margin-top:10px; min-height:1.1em; color:var(--sub);}
 .status.ok{color:var(--grn);} .status.err{color:var(--red);}
 .hidden{display:none !important;}
+#scrLogin{
+  background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.72)), url("Building.png") center/cover no-repeat;
+  min-height:100vh;
+}
+#scrLogin .card{ background:rgba(255,255,255,.92); backdrop-filter:blur(10px); }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) #scrLogin .card{ background:rgba(24,27,36,.85); } }
+:root[data-theme="dark"] #scrLogin .card{ background:rgba(24,27,36,.85); }
+#scrLogin .card .sub, #scrLogin label{ color:var(--sub); }
 .empty-note{text-align:center; padding:26px 10px; color:var(--sub); font-size:.88rem;}
 .toast{position:fixed; top:calc(18px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%) translateY(-8px); background:var(--grn); color:#fff; padding:10px 20px; border-radius:30px; font-size:.85rem; font-weight:800; z-index:200; opacity:0; transition:opacity .2s, transform .2s; white-space:nowrap;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -93,6 +101,27 @@ td.marks .locked{display:inline-flex; align-items:center; gap:6px; color:var(--m
 .modal-sheet .icon{width:56px; height:56px; border-radius:50%; background:var(--grn); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:1.6rem;}
 .modal-sheet h3{text-align:center; font-size:1.15rem; font-weight:800; margin-bottom:8px;}
 .modal-sheet p{text-align:center; color:var(--sub); font-size:.88rem; line-height:1.5; margin-bottom:20px;}
+
+/* ── Desktop / tablet layout ── */
+@media (min-width:768px){
+  .wrap{max-width:640px; padding-top:48px;}
+  #scrMarks .wrap, #scrHome .wrap{max-width:760px;}
+  .card{padding:26px 28px;}
+  table{font-size:.95rem;}
+  th{font-size:.72rem;}
+  td{padding:13px 8px;}
+  .assign-card{padding:20px 22px;}
+  .modal-bg{align-items:center;}
+  .modal-sheet{border-radius:22px; max-width:420px; box-shadow:0 20px 60px -12px rgba(0,0,0,.35);}
+  #scrLogin .wrap{max-width:420px;}
+  #scrLogin{ background-attachment:fixed; }
+  .topbar h1{font-size:1.3rem;}
+}
+@media (min-width:1100px){
+  #scrMarks .wrap, #scrHome .wrap{max-width:880px;}
+  #assignCards{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  #assignCards .assign-card{margin-bottom:0;}
+}
 </style>
 </head>
 <body>
@@ -111,7 +140,6 @@ td.marks .locked{display:inline-flex; align-items:center; gap:6px; color:var(--m
         <button class="btn pri" id="loginBtn">Sign in</button>
         <div class="status" id="loginStatus"></div>
       </div>
-      <div style="text-align:center;"><button class="link" id="goAdmin">Admin? Use the separate admin page →</button></div>
     </div>
   </div>
 </section>
@@ -239,7 +267,6 @@ document.getElementById("logoutBtn").addEventListener("click", ()=>{
   showScreen("scrLogin");
 });
 
-document.getElementById("goAdmin").addEventListener("click", ()=>{ showToast("Open the separate admin page for that."); });
 
 // ---------- marks entry ----------
 buildTermSeg();
