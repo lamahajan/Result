@@ -51,8 +51,6 @@
   .warn{color:var(--red);font-weight:700}
   .creds{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:14px}
   .creds code{background:#fff;padding:2px 7px;border-radius:5px;border:1px solid #d1fae5;font-size:14px}
-  details.srv{margin-top:14px;font-size:12px;color:var(--muted);text-align:left}
-  details.srv input{margin-top:6px;font-size:13px;padding:8px}
 </style>
 </head>
 <body>
@@ -62,9 +60,6 @@
   <input type="password" id="passInput" placeholder="Admin passcode" autocomplete="current-password">
   <button id="loginBtn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
-  <details class="srv" id="srvBox"><summary>Server settings</summary>
-    <input type="text" id="apiInput" placeholder="https://your-worker.workers.dev" autocomplete="off">
-  </details>
 </div>
 
 <div id="app" class="hidden">
@@ -113,7 +108,7 @@
 
 <script>
 const DEFAULT_API = "https://result.result-300.workers.dev";
-let API = localStorage.getItem('eca_api') || DEFAULT_API;
+const API = DEFAULT_API;
 let TOKEN = sessionStorage.getItem('eca_admin_token') || "";
 let CFG = null, USERS = [], EDIT = null;
 
@@ -125,22 +120,20 @@ const sname = s => ((CFG.streams || {})[s] || {}).name || s;
 const subname = s => ((CFG.subjects || {})[s] || {}).name || s;
 
 async function api(method, path, body){
-  if(!API) throw new Error('Server URL is not set (open "Server settings" on the login screen).');
+  if(!API) throw new Error('Server URL is not set in the page (DEFAULT_API).');
   let r;
   try{
     r = await fetch(API.replace(/\/$/, '') + path, {method, headers: Object.assign({'Content-Type':'application/json'}, TOKEN ? {Authorization:'Bearer ' + TOKEN} : {}), body: body === undefined ? undefined : JSON.stringify(body)});
   }catch(e){ throw new Error('Cannot reach the server. Check your internet connection.'); }
   let data = null; try{ data = await r.json(); }catch(e){}
   if(r.status === 401 && TOKEN){ logout('Session expired. Please log in again.'); throw new Error('Session expired'); }
-  if(!r.ok) throw new Error((data && data.error) || ('Server error ' + r.status));
+  if(!r.ok) throw new Error((data && data.error) || ('Server error ' + r.status + '. Open ' + API.replace(/\/$/, '') + '/api/health in a browser to see what is wrong with the Worker setup.'));
   return data;
 }
 
 /* ---------- auth ---------- */
-$('apiInput').value = API; if(!API) $('srvBox').open = true;
 async function login(){
   const msg = $('lockMsg'); msg.textContent = '';
-  API = $('apiInput').value.trim() || API; localStorage.setItem('eca_api', API);
   const p = $('passInput').value; if(!p){ msg.textContent = 'Enter the admin passcode'; return; }
   $('loginBtn').disabled = true;
   try{
