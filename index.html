@@ -26,7 +26,7 @@
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .field{flex:1;min-width:140px}
   .field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
-  select,input.txt{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}
+  select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}
   .tabs{display:flex;gap:6px;margin-bottom:14px}
   .tab{padding:8px 16px;border-radius:8px;background:#e2e8f0;cursor:pointer;font-size:13px;font-weight:600}
   .tab.on{background:var(--accent);color:#fff}
@@ -51,16 +51,21 @@
   .bar>div{height:100%;background:var(--green)}
   .bar.part>div{background:var(--amber)}
   .scroll{overflow:auto;max-height:65vh}
+  details.srv{margin-top:14px;font-size:12px;color:var(--muted);text-align:left}
+  details.srv input{margin-top:6px;font-size:13px;padding:8px}
 </style>
 </head>
 <body>
 
 <div id="lockScreen" class="lock">
   <h2>Marks Entry</h2>
-  <input type="text" id="staffInput" placeholder="Your name (e.g. Ravi Sir)" autocomplete="off">
-  <input type="password" id="passInput" placeholder="Passcode" autocomplete="off">
-  <button onclick="unlock()">Continue</button>
+  <input type="text" id="userInput" placeholder="Username" autocomplete="username" autocapitalize="none">
+  <input type="password" id="passInput" placeholder="Password" autocomplete="current-password">
+  <button id="loginBtn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
+  <details class="srv" id="srvBox"><summary>Server settings</summary>
+    <input type="text" id="apiInput" placeholder="https://your-worker.workers.dev" autocomplete="off">
+  </details>
 </div>
 
 <div id="app" class="hidden">
@@ -70,26 +75,18 @@
       <div class="sub" id="schoolSub"></div>
     </div>
     <div class="right">
-      <span>Entering as <b id="staffName"></b></span>
-      <button onclick="changeName()">Change</button>
-      <button onclick="toggleSettings()">⚙ DB</button>
+      <span>Logged in as <b id="meName"></b></span>
+      <button onclick="logout()">Log out</button>
     </div>
   </header>
 
   <main>
-    <div class="card hidden" id="settingsPanel">
-      <div class="row">
-        <div class="field"><label>Firebase Database URL</label><input class="txt" id="dbUrl"></div>
-        <div class="field"><label>Database Path</label><input class="txt" id="dbPath"></div>
-      </div>
-      <div style="margin-top:10px"><button class="btn" onclick="loadConfig()">Save &amp; Reload</button>
-      <span id="cfgStatus" class="status" style="margin-left:10px"></span></div>
-    </div>
-
     <div class="tabs">
       <div class="tab on" id="tabEntry" onclick="showTab('entry')">Marks Entry</div>
-      <div class="tab" id="tabProg" onclick="showTab('prog')">Progress</div>
+      <div class="tab" id="tabProg" onclick="showTab('prog')">My Progress</div>
     </div>
+
+    <div id="noAssign" class="card empty hidden">No class or subject has been assigned to you yet. Please contact the admin.</div>
 
     <div id="paneEntry">
       <div class="card">
@@ -115,7 +112,7 @@
           <div class="field"><label>Show</label><select id="pFilter"><option value="pending">Pending / incomplete only</option><option value="all">All</option></select></div>
           <div class="field" style="flex:0"><label>&nbsp;</label><button class="btn" onclick="loadProgress()">Check</button></div>
         </div>
-        <div class="note">Optional subjects show only how many marks are filled (the app doesn't know which students take them).</div>
+        <div class="note">Only your assigned classes and subjects are shown. Optional subjects show just how many marks are filled.</div>
       </div>
       <div id="progOut"></div>
     </div>
@@ -123,73 +120,84 @@
 </div>
 
 <script>
-const PASSCODE = "rkm";
+const DEFAULT_API = "https://result.result-300.workers.dev";
 const POLL_MS = 20000;
-let DB_URL = localStorage.getItem('eca_dbUrl') || "https://result-11d1c-default-rtdb.firebaseio.com/";
-let DB_PATH = localStorage.getItem('eca_dbPath') || "Marks";
-let STAFF = localStorage.getItem('eca_staff') || "";
-let CFG = null, STUDENTS = {}, S = null, pollTimer = null, saving = false;
+let API = localStorage.getItem('eca_api') || DEFAULT_API;
+let TOKEN = sessionStorage.getItem('eca_token') || "";
+let CFG = null, STUDENTS = {}, ASSIGN = {}, ME = null, S = null, pollTimer = null, saving = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const base = () => DB_URL.replace(/\/$/, '') + '/' + DB_PATH.replace(/^\/|\/$/g, '');
 
-async function fb(method, path, body){
-  const r = await fetch(base() + '/' + path + '.json', {method, headers:{'Content-Type':'application/json'}, body: body === undefined ? undefined : JSON.stringify(body)});
-  if(!r.ok) throw new Error('HTTP ' + r.status);
-  return r.json();
+async function api(method, path, body){
+  if(!API) throw new Error('Server URL is not set (open "Server settings" on the login screen).');
+  let r;
+  try{
+    r = await fetch(API.replace(/\/$/, '') + path, {method, headers: Object.assign({'Content-Type':'application/json'}, TOKEN ? {Authorization:'Bearer ' + TOKEN} : {}), body: body === undefined ? undefined : JSON.stringify(body)});
+  }catch(e){ throw new Error('Cannot reach the server. Check your internet connection.'); }
+  let data = null; try{ data = await r.json(); }catch(e){}
+  if(r.status === 401 && TOKEN){ logout((data && data.error) || 'Session expired. Please log in again.'); throw new Error('Session expired'); }
+  if(!r.ok) throw new Error((data && data.error) || ('Server error ' + r.status));
+  return data;
 }
 
-/* ---------- login ---------- */
-$('staffInput').value = STAFF;
-function unlock(){
-  const name = $('staffInput').value.trim(), pw = $('passInput').value;
-  if(!name){ $('lockMsg').textContent = 'Please enter your name'; return; }
-  if(pw !== PASSCODE){ $('lockMsg').textContent = 'Wrong passcode'; return; }
-  STAFF = name.slice(0, 20); localStorage.setItem('eca_staff', STAFF);
-  $('lockScreen').classList.add('hidden'); $('app').classList.remove('hidden');
-  $('staffName').textContent = STAFF;
-  $('dbUrl').value = DB_URL; $('dbPath').value = DB_PATH;
-  loadConfig();
+/* ---------- login / logout ---------- */
+$('apiInput').value = API;
+if(!API) $('srvBox').open = true;
+async function login(){
+  const u = $('userInput').value.trim(), p = $('passInput').value, msg = $('lockMsg');
+  msg.textContent = '';
+  API = $('apiInput').value.trim() || API; localStorage.setItem('eca_api', API);
+  if(!u || !p){ msg.textContent = 'Enter username and password'; return; }
+  $('loginBtn').disabled = true;
+  try{
+    TOKEN = '';
+    const r = await api('POST', '/api/login', {username: u, password: p});
+    TOKEN = r.token; sessionStorage.setItem('eca_token', TOKEN);
+    $('passInput').value = '';
+    await start();
+  }catch(e){ msg.textContent = e.message; }
+  $('loginBtn').disabled = false;
 }
-['staffInput','passInput'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') unlock(); }));
-function changeName(){
-  const n = prompt('Your name', STAFF);
-  if(n && n.trim()){ STAFF = n.trim().slice(0, 20); localStorage.setItem('eca_staff', STAFF); $('staffName').textContent = STAFF; }
+['userInput','passInput'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') login(); }));
+function logout(message){
+  stopPoll(); S = null; TOKEN = ''; sessionStorage.removeItem('eca_token');
+  $('app').classList.add('hidden'); $('lockScreen').classList.remove('hidden');
+  $('sheet').innerHTML = ''; $('lockMsg').textContent = typeof message === 'string' ? message : '';
 }
-function toggleSettings(){ $('settingsPanel').classList.toggle('hidden'); }
 function showTab(t){
-  $('paneEntry').classList.toggle('hidden', t !== 'entry'); $('paneProg').classList.toggle('hidden', t !== 'prog');
+  $('paneEntry').classList.toggle('hidden', t !== 'entry' || !hasAssign()); $('paneProg').classList.toggle('hidden', t !== 'prog');
   $('tabEntry').classList.toggle('on', t === 'entry'); $('tabProg').classList.toggle('on', t === 'prog');
 }
+const hasAssign = () => Object.keys(ASSIGN || {}).length > 0;
 
-/* ---------- load config ---------- */
-async function loadConfig(){
-  DB_URL = $('dbUrl').value.trim() || DB_URL; DB_PATH = $('dbPath').value.trim() || DB_PATH;
-  localStorage.setItem('eca_dbUrl', DB_URL); localStorage.setItem('eca_dbPath', DB_PATH);
-  const st = $('cfgStatus'); st.textContent = 'Loading…'; st.className = 'status';
-  try{
-    const [c, s] = await Promise.all([fb('GET', 'config'), fb('GET', 'students')]);
-    if(!c || !s) throw new Error('No data at this path yet — run "Push" from the ECA Sync desktop tool first.');
-    CFG = c; STUDENTS = s;
-    st.textContent = '✔ Loaded'; st.className = 'status ok';
-    const sc = CFG.school || {};
-    $('schoolName').textContent = sc.name || 'Marks Entry';
-    const y = (sc.sessionFrom && sc.sessionUpto) ? 'Session ' + String(sc.sessionFrom).slice(0,4) + '–' + String(sc.sessionUpto).slice(2,4) + ' · ' : '';
-    $('schoolSub').textContent = y + (sc.address || '');
-    fillClasses(); fillTermAss();
-  }catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; }
+/* ---------- bootstrap ---------- */
+async function start(){
+  const b = await api('GET', '/api/bootstrap');
+  if(b.role !== 'user'){ logout('Please use a user account here (the admin panel is a separate page).'); return; }
+  CFG = b.config; STUDENTS = b.students || {}; ASSIGN = b.assign || {}; ME = b.me;
+  $('lockScreen').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('meName').textContent = ME.name;
+  const sc = CFG.school || {};
+  $('schoolName').textContent = sc.name || 'Marks Entry';
+  const y = (sc.sessionFrom && sc.sessionUpto) ? 'Session ' + String(sc.sessionFrom).slice(0,4) + '–' + String(sc.sessionUpto).slice(2,4) + ' · ' : '';
+  $('schoolSub').textContent = y + (sc.address || '');
+  $('noAssign').classList.toggle('hidden', hasAssign());
+  fillClasses(); fillTermAss(); showTab('entry');
 }
 
 const opt = (v, l) => `<option value="${esc(v)}">${esc(l)}</option>`;
 const byKey = (obj, f) => Object.keys(obj || {}).filter(k => obj[k]).sort((a, b) => f(obj[a]) - f(obj[b]));
+const className = c => ((CFG.classes || {})[c] || {}).name || ((CFG.classes || {})[c] || {}).printName || c;
 
 function fillClasses(){
-  const cs = CFG.classSubjects || {};
-  $('selClass').innerHTML = opt('', 'Select class…') + byKey(CFG.classes, c => c.id).filter(k => cs[k]).map(k => opt(k, CFG.classes[k].name || CFG.classes[k].printName)).join('');
+  const cs = Object.keys(ASSIGN).sort((a, b) => (((CFG.classes || {})[a] || {}).id || 0) - (((CFG.classes || {})[b] || {}).id || 0));
+  $('selClass').innerHTML = opt('', 'Select class…') + cs.map(k => opt(k, className(k))).join('');
+  if(cs.length === 1){ $('selClass').value = cs[0]; }
   $('selStream').innerHTML = opt('', '—'); $('selSection').innerHTML = opt('', '—');
   $('selSubject').innerHTML = opt('', 'Select subject…'); $('selAss').innerHTML = opt('', 'Select assessment…');
   $('sheet').innerHTML = '';
+  if(cs.length === 1) onClass();
 }
 function fillTermAss(){
   const terms = byKey(CFG.terms, t => t.sqc || t.id).map(k => opt(k, CFG.terms[k].printName || CFG.terms[k].name)).join('');
@@ -198,10 +206,10 @@ function fillTermAss(){
   $('pTerm').innerHTML = terms; $('pAss').innerHTML = asses;
 }
 
-/* ---------- cascading selects ---------- */
+/* ---------- cascading selects (limited to what is assigned to me) ---------- */
 function onClass(){
   const c = $('selClass').value; $('sheet').innerHTML = ''; stopPoll();
-  const streams = Object.keys((CFG.classSubjects || {})[c] || {});
+  const streams = Object.keys(ASSIGN[c] || {});
   $('selStream').innerHTML = (streams.length === 1 ? '' : opt('', 'Select stream…')) + streams.map(k => opt(k, (CFG.streams[k] || {}).name || k)).join('');
   const secs = new Set(Object.values(STUDENTS).filter(s => s.classId === c && s.sectionId).map(s => s.sectionId));
   $('selSection').innerHTML = opt('', 'All sections') + [...secs].sort().map(k => opt(k, (CFG.sections[k] || {}).name || k)).join('');
@@ -209,8 +217,10 @@ function onClass(){
 }
 function onStream(){
   const c = $('selClass').value, st = $('selStream').value;
-  const sm = (((CFG.classSubjects || {})[c] || {})[st]) || {};
-  $('selSubject').innerHTML = opt('', 'Select subject…') + byKey(sm, x => x.sqc || 0).map(k => opt(k, ((CFG.subjects[k] || {}).name || k) + (sm[k].optional && !sm[k].compulsory ? ' (optional)' : ''))).join('');
+  const mine = ((ASSIGN[c] || {})[st]) || {};
+  const sm = ((CFG.classSubjects[c] || {})[st]) || {};
+  const subs = Object.keys(mine).filter(k => sm[k]).sort((a, b) => (sm[a].sqc || 0) - (sm[b].sqc || 0));
+  $('selSubject').innerHTML = opt('', 'Select subject…') + subs.map(k => opt(k, ((CFG.subjects[k] || {}).name || k) + (sm[k].optional && !sm[k].compulsory ? ' (optional)' : ''))).join('');
   $('selAss').innerHTML = opt('', 'Select assessment…');
   onFilter();
 }
@@ -236,9 +246,9 @@ function gradeOf(m, max, gid){
 const fmt = v => v == null ? '' : String(v);
 
 /* ---------- sheet ---------- */
-function ctx(){
-  return {c: $('selClass').value, st: $('selStream').value, sec: $('selSection').value, t: $('selTerm').value, sub: $('selSubject').value, a: $('selAss').value};
-}
+const ctx = () => ({c: $('selClass').value, st: $('selStream').value, sec: $('selSection').value, t: $('selTerm').value, sub: $('selSubject').value, a: $('selAss').value});
+const sheetQ = x => `term=${encodeURIComponent(x.t)}&ass=${encodeURIComponent(x.a)}&sub=${encodeURIComponent(x.sub)}&c=${encodeURIComponent(x.c)}&st=${encodeURIComponent(x.st)}`;
+
 async function onFilter(){
   stopPoll();
   const x = ctx();
@@ -249,10 +259,9 @@ async function onFilter(){
     .sort((a, b) => String(a[1].sectionId).localeCompare(String(b[1].sectionId)) || (a[1].rollNo || 0) - (b[1].rollNo || 0));
   if(!roster.length){ $('sheet').innerHTML = '<div class="card empty">No students in this class / stream / section.</div>'; S = null; return; }
   $('sheet').innerHTML = '<div class="card empty">Loading…</div>';
-  const path = `entries/${x.t}/${x.a}/${x.sub}`;
   let ex = {};
-  try{ ex = (await fb('GET', path)) || {}; }catch(e){ $('sheet').innerHTML = '<div class="card empty">Could not load: ' + esc(e.message) + '</div>'; return; }
-  S = {x, path, conf, roster, base:{}, dirty:{}, bad:{}, by:{}};
+  try{ ex = (await api('GET', '/api/sheet?' + sheetQ(x))).entries || {}; }catch(e){ $('sheet').innerHTML = '<div class="card empty">Could not load: ' + esc(e.message) + '</div>'; return; }
+  S = {x, conf, roster, base:{}, dirty:{}, bad:{}, by:{}};
   roster.forEach(([k]) => { const e = ex[k]; S.base[k] = e && e.m != null ? e.m : null; S.by[k] = e ? e.by : ''; });
   renderSheet();
   pollTimer = setInterval(poll, POLL_MS);
@@ -272,7 +281,7 @@ function renderSheet(){
     <div class="card" style="padding:0"><div class="scroll"><table>
       <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th><th>Entered by</th></tr></thead>
       <tbody>${rows}</tbody></table></div></div>
-    <div class="note">Type marks and press Enter to jump to the next student. Type AB for absent. Only your changed cells are saved, so other staff working on the same sheet are never overwritten.</div>
+    <div class="note">Type marks and press Enter to jump to the next student. Type AB for absent. Only your changed cells are saved.</div>
     <div class="savebar"><span class="status" id="saveStatus"></span><button class="btn" id="saveBtn" onclick="save()">Save Marks</button></div>`;
   updateFilled();
 }
@@ -318,16 +327,15 @@ async function save(){
   const keys = Object.keys(S.dirty);
   if(!keys.length){ st.textContent = 'Nothing new to save.'; st.className = 'status'; return; }
   saving = true; btn.disabled = true; st.textContent = 'Saving…'; st.className = 'status';
-  const now = new Date().toISOString(), body = {};
-  keys.forEach(k => { body[k] = S.dirty[k] === null ? null : {m: S.dirty[k], by: STAFF, t: now}; });
-  const mine = S;
+  const changes = {}; keys.forEach(k => { changes[k] = S.dirty[k]; });
+  const mine = S, x = S.x;
   try{
-    await fb('PATCH', mine.path, body);
-    keys.forEach(k => { mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : STAFF; const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
+    await api('PATCH', '/api/sheet', {term: x.t, ass: x.a, sub: x.sub, c: x.c, st: x.st, changes});
+    keys.forEach(k => { mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : ME.name.slice(0, 20); const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
     document.querySelectorAll('input.m.dirty').forEach(i => { if(!(i.dataset.k in mine.dirty)) i.classList.remove('dirty'); });
     st.textContent = '✔ Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
     updateFilled();
-  }catch(e){ st.textContent = '✖ Save failed: ' + e.message + ' (your entries are still on screen — try again)'; st.className = 'status err'; }
+  }catch(e){ if(TOKEN){ st.textContent = '✖ Not saved: ' + e.message + ' (your entries are still on screen)'; st.className = 'status err'; } }
   saving = false; btn.disabled = false;
 }
 
@@ -336,7 +344,7 @@ async function poll(manual){
   if(!S || saving) return;
   const mine = S;
   try{
-    const ex = (await fb('GET', mine.path)) || {};
+    const ex = (await api('GET', '/api/sheet?' + sheetQ(mine.x))).entries || {};
     if(S !== mine) return;
     let changed = 0;
     mine.roster.forEach(([k]) => {
@@ -351,45 +359,31 @@ async function poll(manual){
     });
     updateFilled();
     if(manual){ const st = $('saveStatus'); st.textContent = changed ? `Updated ${changed} cell(s) from other staff.` : 'Already up to date.'; st.className = 'status'; }
-  }catch(e){ /* ignore transient network errors */ }
+  }catch(e){ /* ignore transient errors */ }
 }
 
-/* ---------- progress ---------- */
+/* ---------- my progress ---------- */
 async function loadProgress(){
   const t = $('pTerm').value, a = $('pAss').value, only = $('pFilter').value === 'pending', out = $('progOut');
   if(!CFG) return;
   out.innerHTML = '<div class="card empty">Loading…</div>';
-  let ents;
-  try{ ents = (await fb('GET', `entries/${t}/${a}`)) || {}; }catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
-  const rows = [];
-  let allDone = true;
-  byKey(CFG.classes, c => c.id).forEach(c => {
-    const streams = (CFG.classSubjects || {})[c] || {};
-    Object.keys(streams).forEach(st => {
-      const studs = Object.entries(STUDENTS).filter(([, s]) => s.classId === c && s.streamId === st && (s.status || 'Active').toLowerCase() === 'active').map(([k]) => k);
-      if(!studs.length) return;
-      Object.keys(streams[st]).sort((x, y) => (streams[st][x].sqc || 0) - (streams[st][y].sqc || 0)).forEach(sub => {
-        const conf = ((((CFG.assessmentConfig[c] || {})[st] || {})[sub] || {})[a]);
-        if(!conf || !(conf.maxMark > 0)) return;
-        const optional = streams[st][sub].optional && !streams[st][sub].compulsory;
-        const bySub = ents[sub] || {};
-        const filled = studs.filter(k => bySub[k] && bySub[k].m != null).length;
-        const done = optional ? filled > 0 : filled >= studs.length;
-        if(!optional && !done) allDone = false;
-        if(only && done) return;
-        const who = [...new Set(Object.values(bySub).map(e => e && e.by).filter(Boolean))].join(', ');
-        rows.push({cn: CFG.classes[c].name || CFG.classes[c].printName, sn: (CFG.streams[st] || {}).name, sub: (CFG.subjects[sub] || {}).name || sub, filled, total: optional ? null : studs.length, who});
-      });
-    });
-  });
+  let rows;
+  try{ rows = (await api('GET', `/api/progress?term=${encodeURIComponent(t)}&ass=${encodeURIComponent(a)}`)).rows; }catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
+  const done = r => r.optional ? r.filled > 0 : r.filled >= r.total;
+  const allDone = rows.every(r => r.optional || done(r));
+  rows = rows.filter(r => !only || !done(r));
+  rows.sort((x, y) => (((CFG.classes[x.c] || {}).id || 0) - ((CFG.classes[y.c] || {}).id || 0)) || (((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0)));
   out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Filled</th><th></th><th>Staff</th></tr></thead><tbody>` +
     (rows.length ? rows.map(r => {
-      const pct = r.total ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
-      return `<tr><td>${esc(r.cn)}</td><td>${esc(r.sn)}</td><td>${esc(r.sub)}</td><td>${r.filled}${r.total ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${esc(r.who)}</td></tr>`;
+      const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
+      return `<tr><td>${esc(className(r.c))}</td><td>${esc((CFG.streams[r.st] || {}).name)}</td><td>${esc((CFG.subjects[r.sub] || {}).name || r.sub)}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
+        <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${esc((r.who || []).join(', '))}</td></tr>`;
     }).join('') : `<tr><td colspan="6" class="empty">${only ? 'Nothing pending for this term and assessment.' : 'No rows.'}</td></tr>`) +
-    `</tbody></table></div></div>` + (allDone ? '<div class="note" style="color:var(--green);font-weight:600">All compulsory subjects are complete for this assessment.</div>' : '');
+    `</tbody></table></div></div>` + (allDone && rows.length === 0 ? '<div class="note" style="color:var(--green);font-weight:600">All your compulsory subjects are complete for this assessment.</div>' : '');
 }
+
+/* resume a session that is still open in this browser tab */
+if(TOKEN && API){ start().catch(() => {}); }
 </script>
 </body>
 </html>
