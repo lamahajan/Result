@@ -56,7 +56,7 @@
 <body>
 
 <div id="lockScreen" class="lock">
-  <h2>Admin Panel</h2>
+  <img class="logo" src="https://raw.githubusercontent.com/lamahajan/Result/main/logo.png" alt="Logo"><h2>Admin Panel</h2>
   <input type="password" id="passInput" placeholder="Admin passcode" autocomplete="current-password">
   <button id="loginBtn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
@@ -64,7 +64,7 @@
 
 <div id="app" class="hidden">
   <header>
-    <div><h1 id="schoolName">Admin Panel</h1><div class="sub">Users &amp; class-subject assignments</div></div>
+    <div class="brand"><img class="logo" src="https://raw.githubusercontent.com/lamahajan/Result/main/logo.png" alt="Logo"><div><h1 id="schoolName">Admin Panel</h1><div class="sub">Users &amp; class-subject assignments</div></div></div>
     <button onclick="logout()">Log out</button>
   </header>
   <main>
@@ -178,7 +178,7 @@ async function refreshUsers(){
   const rows = USERS.map(u => {
     const s = assignStats(u.assign);
     return `<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.username)}</td>
-      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span></td>
+      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? '✎ Can edit' : '🔒 Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
       <td>${s.subs ? `${s.subs} subject(s) in ${s.classes} class(es)` : '<span class="muted">nothing assigned</span>'}</td>
       <td style="white-space:nowrap"><button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Edit</button>
         <button class="btn sm ghost" onclick="toggleActive('${esc(u.uid)}')">${u.active ? 'Disable' : 'Enable'}</button></td></tr>`;
