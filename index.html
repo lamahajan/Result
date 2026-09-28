@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marks Entry</title>
+<style>
+  :root{--bg:#f8fafc;--card:#fff;--accent:#2563eb;--accent2:#1d4ed8;--text:#0f172a;--muted:#64748b;--green:#16a34a;--red:#dc2626;--amber:#d97706;--border:#e2e8f0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  header{background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  header h1{font-size:17px;margin:0}
+  header .sub{font-size:12px;color:#cbd5e1}
+  header .right{display:flex;gap:8px;align-items:center;font-size:12px;color:#cbd5e1}
+  header button{background:#334155;color:#fff;border:none;padding:7px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+  header button:hover{background:#475569}
+  main{max-width:1100px;margin:0 auto;padding:16px 14px 80px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .lock{max-width:340px;margin:70px auto;text-align:center}
+  .lock input{width:100%;padding:12px;font-size:15px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px}
+  .lock button,.btn{padding:11px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+  .lock button{width:100%}
+  .btn:hover,.lock button:hover{background:var(--accent2)}
+  .btn:disabled{background:#94a3b8;cursor:not-allowed}
+  .btn.ghost{background:#e2e8f0;color:#0f172a}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .field{flex:1;min-width:140px}
+  .field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+  select,input.txt{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}
+  .tabs{display:flex;gap:6px;margin-bottom:14px}
+  .tab{padding:8px 16px;border-radius:8px;background:#e2e8f0;cursor:pointer;font-size:13px;font-weight:600}
+  .tab.on{background:var(--accent);color:#fff}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--muted)}
+  .toolbar b{color:var(--text)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:left}
+  th{background:#f1f5f9;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);position:sticky;top:0;z-index:1}
+  tbody tr:hover{background:#f8fafc}
+  input.m{width:84px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:14px;text-align:center}
+  input.m.bad{border-color:var(--red);background:#fef2f2}
+  input.m.dirty{border-color:var(--amber);background:#fffbeb}
+  .pill{display:inline-block;min-width:34px;text-align:center;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700}
+  .g-good{background:#dcfce7;color:#166534}.g-mid{background:#fef9c3;color:#854d0e}.g-low{background:#fee2e2;color:#991b1b}.g-na{background:#f1f5f9;color:#94a3b8}
+  .by{font-size:11.5px;color:var(--muted)}
+  .savebar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:12px 0;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .status{font-size:13px}.status.ok{color:var(--green)}.status.err{color:var(--red)}
+  .note{font-size:12px;color:var(--muted);margin-top:6px}
+  .empty{text-align:center;padding:36px 10px;color:var(--muted);font-size:14px}
+  .hidden{display:none}
+  .bar{height:8px;background:#e2e8f0;border-radius:6px;overflow:hidden;min-width:90px}
+  .bar>div{height:100%;background:var(--green)}
+  .bar.part>div{background:var(--amber)}
+  .scroll{overflow:auto;max-height:65vh}
+</style>
+</head>
+<body>
+
+<div id="lockScreen" class="lock">
+  <h2>Marks Entry</h2>
+  <input type="text" id="staffInput" placeholder="Your name (e.g. Ravi Sir)" autocomplete="off">
+  <input type="password" id="passInput" placeholder="Passcode" autocomplete="off">
+  <button onclick="unlock()">Continue</button>
+  <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div>
+      <h1 id="schoolName">Marks Entry</h1>
+      <div class="sub" id="schoolSub"></div>
+    </div>
+    <div class="right">
+      <span>Entering as <b id="staffName"></b></span>
+      <button onclick="changeName()">Change</button>
+      <button onclick="toggleSettings()">⚙ DB</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card hidden" id="settingsPanel">
+      <div class="row">
+        <div class="field"><label>Firebase Database URL</label><input class="txt" id="dbUrl"></div>
+        <div class="field"><label>Database Path</label><input class="txt" id="dbPath"></div>
+      </div>
+      <div style="margin-top:10px"><button class="btn" onclick="loadConfig()">Save &amp; Reload</button>
+      <span id="cfgStatus" class="status" style="margin-left:10px"></span></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab on" id="tabEntry" onclick="showTab('entry')">Marks Entry</div>
+      <div class="tab" id="tabProg" onclick="showTab('prog')">Progress</div>
+    </div>
+
+    <div id="paneEntry">
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>Class</label><select id="selClass" onchange="onClass()"></select></div>
+          <div class="field"><label>Stream</label><select id="selStream" onchange="onStream()"></select></div>
+          <div class="field"><label>Section</label><select id="selSection" onchange="onFilter()"></select></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="field"><label>Term</label><select id="selTerm" onchange="onFilter()"></select></div>
+          <div class="field"><label>Subject</label><select id="selSubject" onchange="onSubject()"></select></div>
+          <div class="field"><label>Assessment</label><select id="selAss" onchange="onFilter()"></select></div>
+        </div>
+      </div>
+      <div id="sheet"></div>
+    </div>
+
+    <div id="paneProg" class="hidden">
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>Term</label><select id="pTerm"></select></div>
+          <div class="field"><label>Assessment</label><select id="pAss"></select></div>
+          <div class="field"><label>Show</label><select id="pFilter"><option value="pending">Pending / incomplete only</option><option value="all">All</option></select></div>
+          <div class="field" style="flex:0"><label>&nbsp;</label><button class="btn" onclick="loadProgress()">Check</button></div>
+        </div>
+        <div class="note">Optional subjects show only how many marks are filled (the app doesn't know which students take them).</div>
+      </div>
+      <div id="progOut"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const PASSCODE = "rkm";
+const POLL_MS = 20000;
+let DB_URL = localStorage.getItem('eca_dbUrl') || "https://result-11d1c-default-rtdb.firebaseio.com/";
+let DB_PATH = localStorage.getItem('eca_dbPath') || "Marks";
+let STAFF = localStorage.getItem('eca_staff') || "";
+let CFG = null, STUDENTS = {}, S = null, pollTimer = null, saving = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const base = () => DB_URL.replace(/\/$/, '') + '/' + DB_PATH.replace(/^\/|\/$/g, '');
+
+async function fb(method, path, body){
+  const r = await fetch(base() + '/' + path + '.json', {method, headers:{'Content-Type':'application/json'}, body: body === undefined ? undefined : JSON.stringify(body)});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* ---------- login ---------- */
+$('staffInput').value = STAFF;
+function unlock(){
+  const name = $('staffInput').value.trim(), pw = $('passInput').value;
+  if(!name){ $('lockMsg').textContent = 'Please enter your name'; return; }
+  if(pw !== PASSCODE){ $('lockMsg').textContent = 'Wrong passcode'; return; }
+  STAFF = name.slice(0, 20); localStorage.setItem('eca_staff', STAFF);
+  $('lockScreen').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('staffName').textContent = STAFF;
+  $('dbUrl').value = DB_URL; $('dbPath').value = DB_PATH;
+  loadConfig();
+}
+['staffInput','passInput'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') unlock(); }));
+function changeName(){
+  const n = prompt('Your name', STAFF);
+  if(n && n.trim()){ STAFF = n.trim().slice(0, 20); localStorage.setItem('eca_staff', STAFF); $('staffName').textContent = STAFF; }
+}
+function toggleSettings(){ $('settingsPanel').classList.toggle('hidden'); }
+function showTab(t){
+  $('paneEntry').classList.toggle('hidden', t !== 'entry'); $('paneProg').classList.toggle('hidden', t !== 'prog');
+  $('tabEntry').classList.toggle('on', t === 'entry'); $('tabProg').classList.toggle('on', t === 'prog');
+}
+
+/* ---------- load config ---------- */
+async function loadConfig(){
+  DB_URL = $('dbUrl').value.trim() || DB_URL; DB_PATH = $('dbPath').value.trim() || DB_PATH;
+  localStorage.setItem('eca_dbUrl', DB_URL); localStorage.setItem('eca_dbPath', DB_PATH);
+  const st = $('cfgStatus'); st.textContent = 'Loading…'; st.className = 'status';
+  try{
+    const [c, s] = await Promise.all([fb('GET', 'config'), fb('GET', 'students')]);
+    if(!c || !s) throw new Error('No data at this path yet — run "Push" from the ECA Sync desktop tool first.');
+    CFG = c; STUDENTS = s;
+    st.textContent = '✔ Loaded'; st.className = 'status ok';
+    const sc = CFG.school || {};
+    $('schoolName').textContent = sc.name || 'Marks Entry';
+    const y = (sc.sessionFrom && sc.sessionUpto) ? 'Session ' + String(sc.sessionFrom).slice(0,4) + '–' + String(sc.sessionUpto).slice(2,4) + ' · ' : '';
+    $('schoolSub').textContent = y + (sc.address || '');
+    fillClasses(); fillTermAss();
+  }catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; }
+}
+
+const opt = (v, l) => `<option value="${esc(v)}">${esc(l)}</option>`;
+const byKey = (obj, f) => Object.keys(obj || {}).filter(k => obj[k]).sort((a, b) => f(obj[a]) - f(obj[b]));
+
+function fillClasses(){
+  const cs = CFG.classSubjects || {};
+  $('selClass').innerHTML = opt('', 'Select class…') + byKey(CFG.classes, c => c.id).filter(k => cs[k]).map(k => opt(k, CFG.classes[k].name || CFG.classes[k].printName)).join('');
+  $('selStream').innerHTML = opt('', '—'); $('selSection').innerHTML = opt('', '—');
+  $('selSubject').innerHTML = opt('', 'Select subject…'); $('selAss').innerHTML = opt('', 'Select assessment…');
+  $('sheet').innerHTML = '';
+}
+function fillTermAss(){
+  const terms = byKey(CFG.terms, t => t.sqc || t.id).map(k => opt(k, CFG.terms[k].printName || CFG.terms[k].name)).join('');
+  const asses = byKey(CFG.assessments, a => a.sqc || a.id).map(k => opt(k, CFG.assessments[k].name)).join('');
+  $('selTerm').innerHTML = opt('', 'Select term…') + terms;
+  $('pTerm').innerHTML = terms; $('pAss').innerHTML = asses;
+}
+
+/* ---------- cascading selects ---------- */
+function onClass(){
+  const c = $('selClass').value; $('sheet').innerHTML = ''; stopPoll();
+  const streams = Object.keys((CFG.classSubjects || {})[c] || {});
+  $('selStream').innerHTML = (streams.length === 1 ? '' : opt('', 'Select stream…')) + streams.map(k => opt(k, (CFG.streams[k] || {}).name || k)).join('');
+  const secs = new Set(Object.values(STUDENTS).filter(s => s.classId === c && s.sectionId).map(s => s.sectionId));
+  $('selSection').innerHTML = opt('', 'All sections') + [...secs].sort().map(k => opt(k, (CFG.sections[k] || {}).name || k)).join('');
+  onStream();
+}
+function onStream(){
+  const c = $('selClass').value, st = $('selStream').value;
+  const sm = (((CFG.classSubjects || {})[c] || {})[st]) || {};
+  $('selSubject').innerHTML = opt('', 'Select subject…') + byKey(sm, x => x.sqc || 0).map(k => opt(k, ((CFG.subjects[k] || {}).name || k) + (sm[k].optional && !sm[k].compulsory ? ' (optional)' : ''))).join('');
+  $('selAss').innerHTML = opt('', 'Select assessment…');
+  onFilter();
+}
+function onSubject(){
+  const c = $('selClass').value, st = $('selStream').value, sub = $('selSubject').value;
+  const ac = ((((CFG.assessmentConfig || {})[c] || {})[st] || {})[sub]) || {};
+  const ids = byKey(ac, a => a.sqc || 0).filter(k => ac[k].maxMark > 0);
+  $('selAss').innerHTML = ids.length ? opt('', 'Select assessment…') + ids.map(k => opt(k, `${(CFG.assessments[k] || {}).name || k} (Max ${ac[k].maxMark})`)).join('') : opt('', 'No scored assessment for this subject');
+  onFilter();
+}
+
+/* ---------- grading ---------- */
+function gradeOf(m, max, gid){
+  if(m === '' || m == null) return {g:'', c:'g-na'};
+  if(m === 'AB') return {g:'AB', c:'g-na'};
+  const pct = max > 0 ? m / max * 100 : 0, bands = (CFG.gradeScale || {})[gid] || [];
+  let best = null;
+  bands.forEach(b => { if(pct >= b.from && (!best || b.from > best.from)) best = b; });
+  if(!best && bands.length) best = bands.reduce((a, b) => a.from < b.from ? a : b);
+  if(!best) return {g:'-', c:'g-na'};
+  return {g: best.grade, c: best.point >= 8 ? 'g-good' : best.point >= 5 ? 'g-mid' : 'g-low'};
+}
+const fmt = v => v == null ? '' : String(v);
+
+/* ---------- sheet ---------- */
+function ctx(){
+  return {c: $('selClass').value, st: $('selStream').value, sec: $('selSection').value, t: $('selTerm').value, sub: $('selSubject').value, a: $('selAss').value};
+}
+async function onFilter(){
+  stopPoll();
+  const x = ctx();
+  if(!x.c || !x.st || !x.t || !x.sub || !x.a){ $('sheet').innerHTML = ''; S = null; return; }
+  const conf = ((((CFG.assessmentConfig[x.c] || {})[x.st] || {})[x.sub] || {})[x.a]);
+  if(!conf){ $('sheet').innerHTML = '<div class="card empty">No marks configuration for this combination.</div>'; S = null; return; }
+  const roster = Object.entries(STUDENTS).filter(([k, s]) => s.classId === x.c && s.streamId === x.st && (!x.sec || s.sectionId === x.sec) && (s.status || 'Active').toLowerCase() === 'active')
+    .sort((a, b) => String(a[1].sectionId).localeCompare(String(b[1].sectionId)) || (a[1].rollNo || 0) - (b[1].rollNo || 0));
+  if(!roster.length){ $('sheet').innerHTML = '<div class="card empty">No students in this class / stream / section.</div>'; S = null; return; }
+  $('sheet').innerHTML = '<div class="card empty">Loading…</div>';
+  const path = `entries/${x.t}/${x.a}/${x.sub}`;
+  let ex = {};
+  try{ ex = (await fb('GET', path)) || {}; }catch(e){ $('sheet').innerHTML = '<div class="card empty">Could not load: ' + esc(e.message) + '</div>'; return; }
+  S = {x, path, conf, roster, base:{}, dirty:{}, bad:{}, by:{}};
+  roster.forEach(([k]) => { const e = ex[k]; S.base[k] = e && e.m != null ? e.m : null; S.by[k] = e ? e.by : ''; });
+  renderSheet();
+  pollTimer = setInterval(poll, POLL_MS);
+}
+function stopPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+
+function renderSheet(){
+  const rows = S.roster.map(([k, s]) => {
+    const v = k in S.dirty ? S.dirty[k] : S.base[k], g = gradeOf(v, S.conf.maxMark, S.conf.gradeId);
+    return `<tr><td>${esc(s.rollNo)}</td><td>${esc(s.name)}</td><td>${esc(s.admNo)}</td><td class="by">${esc(s.father)}</td>
+      <td><input class="m ${k in S.dirty ? 'dirty' : ''}" data-k="${esc(k)}" value="${esc(fmt(v))}" inputmode="decimal" autocomplete="off" oninput="onCell(this)" onkeydown="cellKey(event,this)"></td>
+      <td><span class="pill ${g.c}" id="g_${esc(k)}">${esc(g.g)}</span></td><td class="by" id="by_${esc(k)}">${esc(S.by[k])}</td></tr>`;
+  }).join('');
+  $('sheet').innerHTML = `
+    <div class="toolbar"><div>Max <b>${S.conf.maxMark}</b> · Pass <b>${S.conf.minPass}</b> · Students <b>${S.roster.length}</b> · Filled <b id="filled"></b></div>
+      <div><button class="btn ghost" onclick="poll(true)">↻ Refresh</button></div></div>
+    <div class="card" style="padding:0"><div class="scroll"><table>
+      <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th><th>Entered by</th></tr></thead>
+      <tbody>${rows}</tbody></table></div></div>
+    <div class="note">Type marks and press Enter to jump to the next student. Type AB for absent. Only your changed cells are saved, so other staff working on the same sheet are never overwritten.</div>
+    <div class="savebar"><span class="status" id="saveStatus"></span><button class="btn" id="saveBtn" onclick="save()">Save Marks</button></div>`;
+  updateFilled();
+}
+function updateFilled(){
+  if(!S) return;
+  let n = 0; S.roster.forEach(([k]) => { const v = k in S.dirty ? S.dirty[k] : S.base[k]; if(v !== null && v !== undefined) n++; });
+  const el = $('filled'); if(el) el.textContent = n + '/' + S.roster.length;
+}
+
+function parseCell(raw){
+  const v = raw.trim().toUpperCase();
+  if(v === '') return {v:null};
+  if(v === 'AB' || v === 'A') return {v:'AB'};
+  if(!/^\d+(\.\d{1,2})?$/.test(v)) return {bad:true};
+  const n = parseFloat(v);
+  if(n > S.conf.maxMark) return {bad:true};
+  return {v:n};
+}
+function onCell(inp){
+  const k = inp.dataset.k, p = parseCell(inp.value);
+  inp.classList.toggle('bad', !!p.bad);
+  if(p.bad){ S.bad[k] = true; setGrade(k, {g:'!', c:'g-low'}); return; }
+  delete S.bad[k];
+  if(p.v === S.base[k]) delete S.dirty[k]; else S.dirty[k] = p.v;
+  inp.classList.toggle('dirty', k in S.dirty);
+  setGrade(k, gradeOf(p.v, S.conf.maxMark, S.conf.gradeId));
+  updateFilled();
+  $('saveStatus').textContent = '';
+}
+function setGrade(k, g){ const el = $('g_' + k); if(el){ el.textContent = g.g; el.className = 'pill ' + g.c; } }
+function cellKey(e, inp){
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  const all = [...document.querySelectorAll('input.m')], i = all.indexOf(inp);
+  if(all[i + 1]){ all[i + 1].focus(); all[i + 1].select(); }
+}
+window.addEventListener('beforeunload', e => { if(S && Object.keys(S.dirty).length){ e.preventDefault(); e.returnValue = ''; } });
+
+async function save(){
+  if(!S || saving) return;
+  const st = $('saveStatus'), btn = $('saveBtn');
+  if(Object.keys(S.bad).length){ st.textContent = 'Fix the red cells first (0 to ' + S.conf.maxMark + ', or AB).'; st.className = 'status err'; return; }
+  const keys = Object.keys(S.dirty);
+  if(!keys.length){ st.textContent = 'Nothing new to save.'; st.className = 'status'; return; }
+  saving = true; btn.disabled = true; st.textContent = 'Saving…'; st.className = 'status';
+  const now = new Date().toISOString(), body = {};
+  keys.forEach(k => { body[k] = S.dirty[k] === null ? null : {m: S.dirty[k], by: STAFF, t: now}; });
+  const mine = S;
+  try{
+    await fb('PATCH', mine.path, body);
+    keys.forEach(k => { mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : STAFF; const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
+    document.querySelectorAll('input.m.dirty').forEach(i => { if(!(i.dataset.k in mine.dirty)) i.classList.remove('dirty'); });
+    st.textContent = '✔ Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
+    updateFilled();
+  }catch(e){ st.textContent = '✖ Save failed: ' + e.message + ' (your entries are still on screen — try again)'; st.className = 'status err'; }
+  saving = false; btn.disabled = false;
+}
+
+/* pull in other staff's changes for cells I haven't touched */
+async function poll(manual){
+  if(!S || saving) return;
+  const mine = S;
+  try{
+    const ex = (await fb('GET', mine.path)) || {};
+    if(S !== mine) return;
+    let changed = 0;
+    mine.roster.forEach(([k]) => {
+      const e = ex[k], v = e && e.m != null ? e.m : null;
+      if(k in mine.dirty){ mine.base[k] = v; if(mine.dirty[k] === v) delete mine.dirty[k]; return; }
+      if(v !== mine.base[k] || ((e && e.by) || '') !== (mine.by[k] || '')){
+        mine.base[k] = v; mine.by[k] = e ? e.by : ''; changed++;
+        const inp = document.querySelector(`input.m[data-k="${k}"]`);
+        if(inp && document.activeElement !== inp){ inp.value = fmt(v); setGrade(k, gradeOf(v, mine.conf.maxMark, mine.conf.gradeId)); }
+        const b = $('by_' + k); if(b) b.textContent = mine.by[k] || '';
+      }
+    });
+    updateFilled();
+    if(manual){ const st = $('saveStatus'); st.textContent = changed ? `Updated ${changed} cell(s) from other staff.` : 'Already up to date.'; st.className = 'status'; }
+  }catch(e){ /* ignore transient network errors */ }
+}
+
+/* ---------- progress ---------- */
+async function loadProgress(){
+  const t = $('pTerm').value, a = $('pAss').value, only = $('pFilter').value === 'pending', out = $('progOut');
+  if(!CFG) return;
+  out.innerHTML = '<div class="card empty">Loading…</div>';
+  let ents;
+  try{ ents = (await fb('GET', `entries/${t}/${a}`)) || {}; }catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
+  const rows = [];
+  let allDone = true;
+  byKey(CFG.classes, c => c.id).forEach(c => {
+    const streams = (CFG.classSubjects || {})[c] || {};
+    Object.keys(streams).forEach(st => {
+      const studs = Object.entries(STUDENTS).filter(([, s]) => s.classId === c && s.streamId === st && (s.status || 'Active').toLowerCase() === 'active').map(([k]) => k);
+      if(!studs.length) return;
+      Object.keys(streams[st]).sort((x, y) => (streams[st][x].sqc || 0) - (streams[st][y].sqc || 0)).forEach(sub => {
+        const conf = ((((CFG.assessmentConfig[c] || {})[st] || {})[sub] || {})[a]);
+        if(!conf || !(conf.maxMark > 0)) return;
+        const optional = streams[st][sub].optional && !streams[st][sub].compulsory;
+        const bySub = ents[sub] || {};
+        const filled = studs.filter(k => bySub[k] && bySub[k].m != null).length;
+        const done = optional ? filled > 0 : filled >= studs.length;
+        if(!optional && !done) allDone = false;
+        if(only && done) return;
+        const who = [...new Set(Object.values(bySub).map(e => e && e.by).filter(Boolean))].join(', ');
+        rows.push({cn: CFG.classes[c].name || CFG.classes[c].printName, sn: (CFG.streams[st] || {}).name, sub: (CFG.subjects[sub] || {}).name || sub, filled, total: optional ? null : studs.length, who});
+      });
+    });
+  });
+  out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Filled</th><th></th><th>Staff</th></tr></thead><tbody>` +
+    (rows.length ? rows.map(r => {
+      const pct = r.total ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
+      return `<tr><td>${esc(r.cn)}</td><td>${esc(r.sn)}</td><td>${esc(r.sub)}</td><td>${r.filled}${r.total ? ' / ' + r.total : ' (optional)'}</td>
+        <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${esc(r.who)}</td></tr>`;
+    }).join('') : `<tr><td colspan="6" class="empty">${only ? 'Nothing pending for this term and assessment.' : 'No rows.'}</td></tr>`) +
+    `</tbody></table></div></div>` + (allDone ? '<div class="note" style="color:var(--green);font-weight:600">All compulsory subjects are complete for this assessment.</div>' : '');
+}
+</script>
+</body>
+</html>
