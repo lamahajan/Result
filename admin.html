@@ -60,6 +60,10 @@
   .warn{color:var(--red);font-weight:700}
   .creds{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px}
   .creds code{background:#fff;padding:2px 7px;border-radius:6px;border:1px solid #d1fae5;font-size:14px}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lock button.busy{display:flex;align-items:center;justify-content:center;gap:9px;opacity:.9;cursor:progress}
+  .spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 </style>
 </head>
 <body>
@@ -141,17 +145,21 @@ async function api(method, path, body){
 }
 
 /* ---------- auth ---------- */
+function setLoginBusy(on){
+  const b = $('loginBtn'); b.disabled = on; b.classList.toggle('busy', on);
+  b.innerHTML = on ? '<span class="spinner"></span>Logging in…' : 'Log in';
+}
 async function login(){
   const msg = $('lockMsg'); msg.textContent = '';
   const p = $('passInput').value; if(!p){ msg.textContent = 'Enter the admin passcode'; return; }
-  $('loginBtn').disabled = true;
+  setLoginBusy(true);
   try{
     TOKEN = '';
     const r = await api('POST', '/api/admin/login', {passcode: p});
     TOKEN = r.token; sessionStorage.setItem('eca_admin_token', TOKEN); $('passInput').value = '';
     await start();
   }catch(e){ msg.textContent = e.message; }
-  $('loginBtn').disabled = false;
+  setLoginBusy(false);
 }
 $('passInput').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
 function logout(message){
