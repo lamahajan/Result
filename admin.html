@@ -89,10 +89,15 @@
     <!-- USERS -->
     <div id="paneUsers">
       <div id="credsBox"></div>
+      <div class="card" id="bulkCard" style="display:none"></div>
       <div class="card" id="editor" style="display:none"></div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
-          <b>Users</b><button class="btn" onclick="newUser()">＋ New user</button>
+          <b>Users</b><span style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn ghost" onclick="exportUsers(false)">⬇ Download list</button>
+            <button class="btn ghost" onclick="exportUsers(true)">💬 Copy for WhatsApp</button>
+            <button class="btn ghost" onclick="openBulkUsers()">＋ Bulk add</button>
+            <button class="btn" onclick="newUser()">＋ New user</button></span>
         </div>
         <div class="scroll"><table>
           <thead><tr><th>Name</th><th>Username</th><th>Status</th><th>Assigned</th><th></th></tr></thead>
@@ -213,10 +218,71 @@ function genPassword(){
   const set = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', b = crypto.getRandomValues(new Uint8Array(8));
   return [...b].map(x => set[x % set.length]).join('');
 }
-function newUser(){ EDIT = {uid: null, assign: {}}; $('credsBox').innerHTML = ''; renderEditor({name:'', username:'', active:true}, genPassword()); }
+
+/* ---------- bulk add / export ---------- */
+let CREDS = {};   // username -> password (only known for users created/reset in this browser session)
+function makeUsername(name, taken){
+  taken = taken || new Set(USERS.map(u => u.username));
+  let base = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 17) || 'user';
+  while(base.length < 3) base += '1';
+  let u = base, i = 2;
+  while(taken.has(u)) u = base.slice(0, 17) + i++;
+  return u;
+}
+function openBulkUsers(){
+  closeEditor(); $('credsBox').innerHTML = '';
+  $('bulkCard').style.display = 'block';
+  $('bulkCard').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Bulk add users</b>
+      <button class="btn sm ghost" onclick="$('bulkCard').style.display='none'">✕ Close</button></div>
+    <div class="muted" style="margin-bottom:6px">Ek line mein ek naam likho. Username naam se apne aap ban jayega aur password random generate hoga. Subjects baad mein Edit se assign karna.</div>
+    <textarea id="bulkNames" class="txt" rows="7" placeholder="Rajesh Kumar&#10;Simran Kaur&#10;Amit Sharma" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:600 14px inherit;outline:none"></textarea>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;font-size:13px">
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bShow"> Show already-filled marks</label>
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bEdit" onchange="if(this.checked)$('bShow').checked=true"> Allow editing entered marks</label></div>
+    <div style="display:flex;gap:10px;align-items:center"><button class="btn" id="bulkGo" onclick="runBulkUsers()">Create users</button><span class="status" id="bulkStatus"></span></div>
+    <div id="bulkOut"></div>`;
+}
+async function runBulkUsers(){
+  const names = [...new Set($('bulkNames').value.split('\n').map(s => s.trim().slice(0, 30)).filter(Boolean))];
+  const st = $('bulkStatus'), btn = $('bulkGo');
+  if(!names.length){ st.textContent = 'Kam se kam ek naam likho.'; st.className = 'status err'; return; }
+  btn.disabled = true; st.className = 'status';
+  const taken = new Set(USERS.map(u => u.username)), canEdit = $('bEdit').checked, showFilled = $('bShow').checked || canEdit, made = [];
+  for(let i = 0; i < names.length; i++){
+    const username = makeUsername(names[i], taken), password = genPassword();
+    st.textContent = `Creating ${i + 1}/${names.length}…`;
+    try{ await api('POST', '/api/admin/users', {name: names[i], username, password, active: true, canEdit, showFilled, assign: {}}); taken.add(username); CREDS[username] = password; made.push({name: names[i], username, password, ok: true}); }
+    catch(e){ made.push({name: names[i], username, password: '', ok: false, err: e.message}); }
+  }
+  const okN = made.filter(x => x.ok).length;
+  st.textContent = `✔ ${okN} created` + (okN < made.length ? `, ✖ ${made.length - okN} failed` : ''); st.className = okN === made.length ? 'status ok' : 'status err';
+  btn.disabled = false;
+  $('bulkOut').innerHTML = `<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Username</th><th>Password</th></tr></thead><tbody>` +
+    made.map(x => `<tr><td>${esc(x.name)}</td><td>${x.ok ? esc(x.username) : '—'}</td><td>${x.ok ? '<code>' + esc(x.password) + '</code>' : '<span class="warn">' + esc(x.err) + '</span>'}</td></tr>`).join('') + `</tbody></table></div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">⬇ Download list</button><button class="btn ghost" onclick="exportUsers(true)">💬 Copy for WhatsApp</button></div>`;
+  await refreshUsers();
+}
+async function exportUsers(whatsapp){
+  await refreshUsers();
+  const unknown = USERS.filter(u => !CREDS[u.username]);
+  if(unknown.length && confirm(`${unknown.length} user(s) ka password pata nahi (secure hashed hai).\n\nOK = unka naya password generate karke reset kar do (purane password band ho jayenge)\nCancel = unka password khali chhod do`)){
+    for(const u of unknown){ const pw = genPassword(); try{ await api('PUT', '/api/admin/users/' + u.uid, {password: pw}); CREDS[u.username] = pw; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
+  }
+  const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.map(u => ({name: u.name, username: u.username, password: CREDS[u.username] || ''}));
+  if(whatsapp){
+    const txt = rows.map(r => `*${school} – Marks Entry*\nName: ${r.name}\nUsername: ${r.username}\nPassword: ${r.password || '(not shown)'}`).join('\n\n');
+    try{ await navigator.clipboard.writeText(txt); alert('Copy ho gaya — WhatsApp mein paste kar do.'); }
+    catch(e){ prompt('Copy this text:', txt); }
+    return;
+  }
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const csv = '\uFEFF' + [['Name', 'Username', 'Password'].map(q).join(',')].concat(rows.map(r => [r.name, r.username, r.password].map(q).join(','))).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'})); a.download = 'marks-entry-users.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+function newUser(){ EDIT = {uid: null, assign: {}}; $('credsBox').innerHTML = ''; renderEditor({name:'', username:'', active:true}, genPassword()); $('bulkCard').style.display = 'none'; }
 function editUser(uid){
   const u = USERS.find(x => x.uid === uid); if(!u) return;
-  EDIT = {uid, assign: JSON.parse(JSON.stringify(u.assign || {}))}; $('credsBox').innerHTML = '';
+  EDIT = {uid, username: u.username, assign: JSON.parse(JSON.stringify(u.assign || {}))}; $('credsBox').innerHTML = '';
   renderEditor(u, '');
 }
 function isOn(c, st, sub){ return !!(EDIT.assign[c] && EDIT.assign[c][st] && EDIT.assign[c][st][sub]); }
@@ -248,8 +314,8 @@ function renderEditor(u, pw){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>${isNew ? 'New user' : 'Edit user'}</b>
       <button class="btn sm ghost" onclick="closeEditor()">✕ Close</button></div>
     <div class="row">
-      <div class="field"><label>Full name</label><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30"></div>
-      <div class="field"><label>Username</label><input class="txt" id="eUser" value="${esc(u.username)}" maxlength="20" autocapitalize="none" autocomplete="off"></div>
+      <div class="field"><label>Name ${isNew ? '(login username is made from this)' : ''}</label><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30">
+        ${isNew ? '' : `<div class="muted" style="margin-top:4px">Username: <b>${esc(u.username)}</b></div>`}</div>
       <div class="field"><label>${isNew ? 'Password' : 'New password (leave blank to keep)'}</label>
         <div style="display:flex;gap:6px"><input class="txt" id="ePass" value="${esc(pw)}" autocomplete="new-password">
         <button class="btn sm ghost" type="button" onclick="$('ePass').value=genPassword()">Generate</button></div></div>
@@ -278,20 +344,22 @@ function grpAll(c, st, on){
 }
 async function saveUser(){
   const st = $('editStatus'), btn = $('saveUserBtn');
-  const name = $('eName').value.trim(), username = $('eUser').value.trim().toLowerCase(), password = $('ePass').value, active = $('eActive').checked, canEdit = $('eEdit').checked, showFilled = $('eShow').checked || $('eEdit').checked;
+  const name = $('eName').value.trim(), username = EDIT.uid ? EDIT.username : makeUsername(name), password = $('ePass').value, active = $('eActive').checked, canEdit = $('eEdit').checked, showFilled = $('eShow').checked || $('eEdit').checked;
   st.className = 'status';
-  if(!name || !username){ st.textContent = 'Name and username are required.'; st.className = 'status err'; return; }
+  if(!name || !username){ st.textContent = 'Name is required.'; st.className = 'status err'; return; }
   btn.disabled = true; st.textContent = 'Saving…';
   try{
     if(!EDIT.uid){
       if(password.length < 6) throw new Error('Password must be at least 6 characters');
       await api('POST', '/api/admin/users', {name, username, password, active, canEdit, showFilled, assign: EDIT.assign});
+      CREDS[username] = password;
       $('credsBox').innerHTML = `<div class="creds"><b>User created.</b> Share these login details:<br>Username: <code>${esc(username)}</code> &nbsp; Password: <code>${esc(password)}</code>
         <div class="muted" style="margin-top:4px">The password cannot be viewed again later — you can only set a new one.</div></div>`;
     }else{
       const body = {name, username, active, canEdit, showFilled, assign: EDIT.assign};
       if(password){ if(password.length < 6) throw new Error('Password must be at least 6 characters'); body.password = password; }
       await api('PUT', '/api/admin/users/' + EDIT.uid, body);
+      if(password) CREDS[username] = password;
       if(password) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> password <code>${esc(password)}</code> (old sessions were logged out)</div>`;
     }
     closeEditor(); await refreshUsers();
