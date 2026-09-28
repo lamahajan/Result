@@ -237,6 +237,8 @@ function renderEditor(u, pw){
         <button class="btn sm ghost" type="button" onclick="$('ePass').value=genPassword()">Generate</button></div></div>
     </div>
     <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:14px"><input type="checkbox" id="eActive" ${u.active !== false ? 'checked' : ''}> Account active (can log in)</label>
+    <label style="display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px"><input type="checkbox" id="eShow" ${u.showFilled || u.canEdit ? 'checked' : ''}> Show already-filled marks in the student list (off = teacher sees only students still empty)</label>
+    <label style="display:flex;gap:8px;align-items:center;margin:6px 0 12px;font-size:14px"><input type="checkbox" id="eEdit" ${u.canEdit ? 'checked' : ''} onchange="if(this.checked)$('eShow').checked=true"> Allow editing marks once entered (off = locked after first save)</label>
     <div style="margin:14px 0 4px"><b>Class &amp; subject assignment</b> <span class="muted">— tick the subjects this user may fill marks for</span></div>
     <div class="scroll" style="max-height:46vh;padding-right:4px">${groups}</div>
     <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">
@@ -258,18 +260,18 @@ function grpAll(c, st, on){
 }
 async function saveUser(){
   const st = $('editStatus'), btn = $('saveUserBtn');
-  const name = $('eName').value.trim(), username = $('eUser').value.trim().toLowerCase(), password = $('ePass').value, active = $('eActive').checked;
+  const name = $('eName').value.trim(), username = $('eUser').value.trim().toLowerCase(), password = $('ePass').value, active = $('eActive').checked, canEdit = $('eEdit').checked, showFilled = $('eShow').checked || $('eEdit').checked;
   st.className = 'status';
   if(!name || !username){ st.textContent = 'Name and username are required.'; st.className = 'status err'; return; }
   btn.disabled = true; st.textContent = 'Saving…';
   try{
     if(!EDIT.uid){
       if(password.length < 6) throw new Error('Password must be at least 6 characters');
-      await api('POST', '/api/admin/users', {name, username, password, active, assign: EDIT.assign});
+      await api('POST', '/api/admin/users', {name, username, password, active, canEdit, showFilled, assign: EDIT.assign});
       $('credsBox').innerHTML = `<div class="creds"><b>User created.</b> Share these login details:<br>Username: <code>${esc(username)}</code> &nbsp; Password: <code>${esc(password)}</code>
         <div class="muted" style="margin-top:4px">The password cannot be viewed again later — you can only set a new one.</div></div>`;
     }else{
-      const body = {name, username, active, assign: EDIT.assign};
+      const body = {name, username, active, canEdit, showFilled, assign: EDIT.assign};
       if(password){ if(password.length < 6) throw new Error('Password must be at least 6 characters'); body.password = password; }
       await api('PUT', '/api/admin/users/' + EDIT.uid, body);
       if(password) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> password <code>${esc(password)}</code> (old sessions were logged out)</div>`;
