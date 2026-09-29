@@ -199,7 +199,7 @@
     </div>
     <div class="scrollarea"><main>
       <div id="noAssign" class="card empty hidden">No class or subject has been assigned to you yet. Please contact the admin.</div>
-      <div id="paneEntry"><div id="sheet"><div class="card empty">← Left side se class, subject aur assessment select karo.</div></div></div>
+      <div id="paneEntry"><div id="sheet"><div class="card empty">Select a class, subject and assessment to begin.</div></div></div>
       <div id="paneProg" class="hidden">
       <div class="note" style="margin-bottom:10px">Showing everything assigned to you for the admin's active term — no need to search.</div>
       <div id="progOut"></div>
@@ -208,10 +208,10 @@
   </section>
 </div></div>
 <div id="bulkModal" class="overlay hidden" onclick="if(event.target===this)closeBulk()"><div class="modal">
-  <h3>⚡ Bulk entry</h3><p>Ye value list ke students mein bhar di jayegi. Uske baad Save Marks dabana hoga.</p>
+  <h3>⚡ Bulk entry</h3><p>This value will be filled in for the students in the list. You still need to press Save Marks afterwards.</p>
   <input type="text" id="bulkVal" placeholder="Marks / AB" autocomplete="off" onkeydown="if(event.key==='Enter')applyBulk()">
-  <label class="opt"><input type="radio" name="bulkMode" value="empty" checked> Sirf khali students mein</label>
-  <label class="opt"><input type="radio" name="bulkMode" value="all"> Sabme (overwrite)</label>
+  <label class="opt"><input type="radio" name="bulkMode" value="empty" checked> Only students with empty marks</label>
+  <label class="opt"><input type="radio" name="bulkMode" value="all"> All students (overwrite)</label>
   <div class="acts"><button class="btn ghost" onclick="closeBulk()">Cancel</button><button class="btn" onclick="applyBulk()">Apply</button></div>
 </div></div>
 
