@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#7c5cbf">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AankSetu">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>AankSetu — Marks Entry</title>
 <style>
   :root{--bg:#f0f4ff;--surf:#fff;--card:#f7f5ff;--brand:#7c5cbf;--brand-d:#5e40a0;--brand-s:rgba(124,92,191,.10);--brand-b:rgba(124,92,191,.28);--text:#1a1035;--muted:#6b5b95;--soft:#b0a0d0;--border:#e0d9f5;--border2:#c9bdf0;--green:#2d9e6b;--red:#d04040;--amber:#c07a20;--sh:0 1px 4px rgba(100,80,180,.08);--shm:0 6px 22px rgba(100,80,180,.14);--sans:'Plus Jakarta Sans',-apple-system,Segoe UI,Roboto,Arial,sans-serif;--num:'Outfit','Plus Jakarta Sans',sans-serif}
@@ -564,6 +571,13 @@ if(TOKEN && API){ start().catch(e => { if(TOKEN) logout('Could not restore your 
   new MutationObserver(sched).observe(document.body, {childList:true, subtree:true});
   run();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW register failed:', err); });
+  });
+}
 </script>
 </body>
 </html>

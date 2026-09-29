@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AankSetu">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>AankSetu — Admin</title>
 <style>
   :root{--bg:#f4f6fb;--card:#fff;--accent:#4f46e5;--accent2:#4338ca;--text:#0f172a;--muted:#64748b;--green:#059669;--red:#dc2626;--amber:#d97706;--border:#e5e9f2;--sh:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06)}
@@ -205,6 +212,7 @@ const opt = (v, l) => `<option value="${esc(v)}">${esc(l)}</option>`;
 const cname = c => ((CFG.classes || {})[c] || {}).name || c;
 const sname = s => ((CFG.streams || {})[s] || {}).name || s;
 const subname = s => ((CFG.subjects || {})[s] || {}).name || s;
+const assname = a => ((CFG.assessments || {})[a] || {}).name || a;
 
 async function api(method, path, body){
   if(!API) throw new Error('Server URL is not set in the page (DEFAULT_API).');
@@ -520,16 +528,16 @@ async function loadCoverage(){
   const done = r => r.optional ? r.filled > 0 : r.filled >= r.total;
   rows.forEach(r => { r.owners = owners[r.c + '|' + r.st + '|' + r.sub] || []; });
   const total = rows.length, unassigned = rows.filter(r => !r.owners.length).length, complete = rows.filter(done).length;
-  $('covSummary').innerHTML = `<div class="card"><b>${complete}</b> of <b>${total}</b> class-subjects complete · <span class="${unassigned ? 'warn' : ''}"><b>${unassigned}</b> unassigned</span></div>`;
+  $('covSummary').innerHTML = `<div class="card"><b>${complete}</b> of <b>${total}</b> class-subject assessments complete · <span class="${unassigned ? 'warn' : ''}"><b>${unassigned}</b> unassigned</span></div>`;
   let shown = rows.filter(r => f === 'all' || (f === 'pending' && !done(r)) || (f === 'unassigned' && !r.owners.length));
-  shown.sort((x, y) => (CFG.classes[x.c].id - CFG.classes[y.c].id) || ((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0));
-  out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Filled</th><th></th><th>Assigned to</th><th>Entered by</th></tr></thead><tbody>` +
+  shown.sort((x, y) => (CFG.classes[x.c].id - CFG.classes[y.c].id) || ((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0) || ((CFG.assessments[x.ass] || {}).sqc || 0) - ((CFG.assessments[y.ass] || {}).sqc || 0));
+  out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Assessment</th><th>Filled</th><th>Progress</th><th>Assigned to</th><th>Entered by</th></tr></thead><tbody>` +
     (shown.length ? shown.map(r => {
       const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
-      return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
+      return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${esc(assname(r.ass))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
         <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td>
         <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">⚠ Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
-    }).join('') : '<tr><td colspan="7" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
+    }).join('') : '<tr><td colspan="8" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
 }
 
 if(TOKEN && API){ start().catch(() => {}); }
@@ -553,6 +561,13 @@ if(TOKEN && API){ start().catch(() => {}); }
   new MutationObserver(sched).observe(document.body, {childList:true, subtree:true});
   run();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW register failed:', err); });
+  });
+}
 </script>
 </body>
 </html>
