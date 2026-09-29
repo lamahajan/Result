@@ -81,8 +81,16 @@
     <button onclick="logout()">Log out</button>
   </header>
   <main>
+    <div class="card" id="termCard" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <b style="white-space:nowrap">Feeding term</b>
+      <select id="termSel" style="max-width:220px"></select>
+      <button class="btn sm" onclick="saveActiveTerm()">Save</button>
+      <span class="status" id="termStatus"></span>
+      <span class="muted" style="margin-left:auto">Teachers can only enter marks for this term.</span>
+    </div>
     <div class="tabs">
       <div class="tab on" id="tabUsers" onclick="showTab('users')">Users</div>
+      <div class="tab" id="tabPending" onclick="showTab('pending')">Pending requests <span class="cnt some hidden" id="pendCount"></span></div>
       <div class="tab" id="tabCov" onclick="showTab('cov')">Coverage &amp; Progress</div>
     </div>
 
@@ -106,12 +114,16 @@
       </div>
     </div>
 
+    <!-- PENDING REQUESTS -->
+    <div id="panePending" class="hidden">
+      <div id="pendOut"></div>
+    </div>
+
     <!-- COVERAGE -->
     <div id="paneCov" class="hidden">
       <div class="card">
         <div class="row">
-          <div class="field"><label>Term</label><select id="cTerm"></select></div>
-          <div class="field"><label>Assessment</label><select id="cAss"></select></div>
+          <div class="field"><label>Assessment</label><select id="cAss"><option value="">All assessments</option></select></div>
           <div class="field"><label>Show</label><select id="cFilter">
             <option value="all">All</option><option value="pending">Pending / incomplete</option><option value="unassigned">Unassigned only</option></select></div>
           <div class="field" style="flex:0"><label>&nbsp;</label><button class="btn" onclick="loadCoverage()">Check</button></div>
@@ -128,7 +140,7 @@
 const DEFAULT_API = "https://result.result-300.workers.dev";
 const API = DEFAULT_API;
 let TOKEN = sessionStorage.getItem('eca_admin_token') || "";
-let CFG = null, USERS = [], EDIT = null;
+let CFG = null, USERS = [], EDIT = null, ACTIVE_TERM = null;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -173,7 +185,9 @@ function logout(message){
   $('lockMsg').textContent = typeof message === 'string' ? message : '';
 }
 function showTab(t){
-  $('paneUsers').classList.toggle('hidden', t !== 'users'); $('paneCov').classList.toggle('hidden', t !== 'cov');
+  $('paneUsers').classList.toggle('hidden', t !== 'users'); $('paneCov').classList.toggle('hidden', t !== 'cov'); $('panePending').classList.toggle('hidden', t !== 'pending');
+  $('tabPending').classList.toggle('on', t === 'pending');
+  if(t === 'pending') renderPending();
   $('tabUsers').classList.toggle('on', t === 'users'); $('tabCov').classList.toggle('on', t === 'cov');
   if(t === 'cov') refreshUsers().catch(() => {});
 }
@@ -185,8 +199,18 @@ async function start(){
   $('schoolName').textContent = ((CFG.school || {}).name || 'School') + ' — Admin';
   const terms = Object.keys(CFG.terms || {}).sort((a, b) => (CFG.terms[a].sqc || CFG.terms[a].id) - (CFG.terms[b].sqc || CFG.terms[b].id)).map(k => opt(k, CFG.terms[k].printName || CFG.terms[k].name)).join('');
   const asses = Object.keys(CFG.assessments || {}).sort((a, b) => (CFG.assessments[a].sqc || CFG.assessments[a].id) - (CFG.assessments[b].sqc || CFG.assessments[b].id)).map(k => opt(k, CFG.assessments[k].name)).join('');
-  $('cTerm').innerHTML = terms; $('cAss').innerHTML = asses;
+  $('cAss').innerHTML = '<option value="">All assessments</option>' + asses;
+  $('termSel').innerHTML = terms;
+  if(b.activeTerm) $('termSel').value = b.activeTerm;
+  ACTIVE_TERM = b.activeTerm || null;
   await refreshUsers();
+}
+async function saveActiveTerm(){
+  const sel = $('termSel').value, st = $('termStatus');
+  if(!sel){ st.textContent = 'Choose a term first.'; st.className = 'status err'; return; }
+  st.textContent = 'Saving…'; st.className = 'status';
+  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.textContent = '✔ Saved — teachers will now feed marks for this term.'; st.className = 'status ok'; }
+  catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; }
 }
 
 /* ---------- users list ---------- */
@@ -197,9 +221,10 @@ function assignStats(a){
 }
 async function refreshUsers(){
   USERS = (await api('GET', '/api/admin/users')).users;
-  const rows = USERS.map(u => {
+  const approved = USERS.filter(u => !u.pending);
+  const rows = approved.map(u => {
     const s = assignStats(u.assign);
-    return `<tr><td><b>${esc(u.name)}</b></td><td>${esc(u.username)}</td>
+    return `<tr><td><b>${esc(u.name)}</b>${u.mobile ? `<div class="muted">${esc(u.mobile)}</div>` : ''}</td><td>${esc(u.username)}</td>
       <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? '✎ Can edit' : '🔒 Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
       <td>${s.subs ? `${s.subs} subject(s) in ${s.classes} class(es)` : '<span class="muted">nothing assigned</span>'}</td>
       <td style="white-space:nowrap"><button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Edit</button>
@@ -207,6 +232,50 @@ async function refreshUsers(){
         <button class="btn sm danger" onclick="delUser('${esc(u.uid)}')">Delete</button></td></tr>`;
   }).join('');
   $('userRows').innerHTML = rows || '<tr><td colspan="5" class="empty">No users yet. Click "New user".</td></tr>';
+  const pendN = USERS.filter(u => u.pending).length, pc = $('pendCount');
+  pc.textContent = pendN || ''; pc.classList.toggle('hidden', !pendN);
+}
+
+function summarizeRequested(req){
+  const parts = [];
+  for(const c in req || {}) for(const st in req[c]) for(const sub in req[c][st])
+    parts.push(cname(c) + ' · ' + sname(st) + ' · ' + subname(sub));
+  return parts;
+}
+function renderPending(){
+  const pend = USERS.filter(u => u.pending), out = $('pendOut');
+  if(!pend.length){ out.innerHTML = '<div class="card empty">No pending requests. New signups will show up here.</div>'; return; }
+  out.innerHTML = pend.map(u => {
+    const reqList = summarizeRequested(u.requested);
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div><b style="font-size:15px">${esc(u.name)}</b><div class="muted" style="margin-top:2px">Username: <b>${esc(u.username)}</b>${u.mobile ? ' · 📱 ' + esc(u.mobile) : ''}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm" onclick="approvePending('${esc(u.uid)}')">✔ Approve${reqList.length ? ' as requested' : ''}</button>
+          <button class="btn sm ghost" onclick="editThenApprove('${esc(u.uid)}')">Edit first</button>
+          <button class="btn sm danger" onclick="rejectPending('${esc(u.uid)}')">✕ Reject</button>
+        </div>
+      </div>
+      ${reqList.length ? `<div class="muted" style="margin-top:10px">Requested to teach:</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">${reqList.map(t => `<span class="badge b-lock">${esc(t)}</span>`).join('')}</div>` : '<div class="muted" style="margin-top:10px">No subjects requested — assign manually via "Edit first".</div>'}
+    </div>`;
+  }).join('');
+}
+async function approvePending(uid){
+  try{ await api('PUT', '/api/admin/users/' + uid, {approve: true}); await refreshUsers(); renderPending(); }
+  catch(e){ alert(e.message); }
+}
+async function rejectPending(uid){
+  const u = USERS.find(x => x.uid === uid);
+  if(!u || !confirm(`Reject and delete this request from "${u.name}"?`)) return;
+  try{ await api('DELETE', '/api/admin/users/' + uid); await refreshUsers(); renderPending(); }
+  catch(e){ alert(e.message); }
+}
+function editThenApprove(uid){
+  showTab('users'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('on')); $('tabUsers').classList.add('on');
+  const u = USERS.find(x => x.uid === uid); if(!u) return;
+  EDIT = {uid, username: u.username, assign: JSON.parse(JSON.stringify(u.requested && Object.keys(u.requested).length ? u.requested : u.assign || {})), approveOnSave: true};
+  $('credsBox').innerHTML = '';
+  renderEditor(u, '');
 }
 async function toggleActive(uid){
   const u = USERS.find(x => x.uid === uid); if(!u) return;
@@ -214,10 +283,7 @@ async function toggleActive(uid){
 }
 
 /* ---------- editor ---------- */
-function genPassword(){
-  const set = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', b = crypto.getRandomValues(new Uint8Array(8));
-  return [...b].map(x => set[x % set.length]).join('');
-}
+function genPin(){ return '1234'; }
 
 /* ---------- bulk add / export ---------- */
 let CREDS = {};   // username -> password (only known for users created/reset in this browser session)
@@ -234,8 +300,8 @@ function openBulkUsers(){
   $('bulkCard').style.display = 'block';
   $('bulkCard').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Bulk add users</b>
       <button class="btn sm ghost" onclick="$('bulkCard').style.display='none'">✕ Close</button></div>
-    <div class="muted" style="margin-bottom:6px">Ek line mein ek naam likho. Username naam se apne aap ban jayega aur password random generate hoga. Subjects baad mein Edit se assign karna.</div>
-    <textarea id="bulkNames" class="txt" rows="7" placeholder="Rajesh Kumar&#10;Simran Kaur&#10;Amit Sharma" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:600 14px inherit;outline:none"></textarea>
+    <div class="muted" style="margin-bottom:6px">Ek line mein: Naam, Mobile number (comma se alag). Username naam se apne aap ban jayega, PIN sab ka 1234 hoga. Subjects baad mein Edit se assign karna.</div>
+    <textarea id="bulkNames" class="txt" rows="7" placeholder="Rajesh Kumar, 9876543210&#10;Simran Kaur, 9123456780&#10;Amit Sharma" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:600 14px inherit;outline:none"></textarea>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;font-size:13px">
       <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bShow"> Show already-filled marks</label>
       <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bEdit" onchange="if(this.checked)$('bShow').checked=true"> Allow editing entered marks</label></div>
@@ -243,46 +309,49 @@ function openBulkUsers(){
     <div id="bulkOut"></div>`;
 }
 async function runBulkUsers(){
-  const names = [...new Set($('bulkNames').value.split('\n').map(s => s.trim().slice(0, 30)).filter(Boolean))];
+  const entries = [...new Set($('bulkNames').value.split('\n').map(s => s.trim()).filter(Boolean))]
+    .map(line => { const [n, m] = line.split(','); return {name: (n || '').trim().slice(0, 30), mobile: (m || '').replace(/\D/g, '').slice(0, 15)}; })
+    .filter(e => e.name);
   const st = $('bulkStatus'), btn = $('bulkGo');
-  if(!names.length){ st.textContent = 'Kam se kam ek naam likho.'; st.className = 'status err'; return; }
+  if(!entries.length){ st.textContent = 'Kam se kam ek naam likho.'; st.className = 'status err'; return; }
   btn.disabled = true; st.className = 'status';
-  const taken = new Set(USERS.map(u => u.username)), canEdit = $('bEdit').checked, showFilled = $('bShow').checked || canEdit, made = [];
-  for(let i = 0; i < names.length; i++){
-    const username = makeUsername(names[i], taken), password = genPassword();
-    st.textContent = `Creating ${i + 1}/${names.length}…`;
-    try{ await api('POST', '/api/admin/users', {name: names[i], username, password, active: true, canEdit, showFilled, assign: {}}); taken.add(username); CREDS[username] = password; made.push({name: names[i], username, password, ok: true}); }
-    catch(e){ made.push({name: names[i], username, password: '', ok: false, err: e.message}); }
+  const taken = new Set(USERS.map(u => u.username)), canEdit = $('bEdit').checked, showFilled = $('bShow').checked || canEdit, pin = '1234', made = [];
+  for(let i = 0; i < entries.length; i++){
+    const {name, mobile} = entries[i], username = makeUsername(name, taken);
+    st.textContent = `Creating ${i + 1}/${entries.length}…`;
+    try{ await api('POST', '/api/admin/users', {name, username, mobile, pin, active: true, canEdit, showFilled, assign: {}}); taken.add(username); CREDS[username] = pin; made.push({name, username, mobile, pin, ok: true}); }
+    catch(e){ made.push({name, username, mobile, pin: '', ok: false, err: e.message}); }
   }
   const okN = made.filter(x => x.ok).length;
-  st.textContent = `✔ ${okN} created` + (okN < made.length ? `, ✖ ${made.length - okN} failed` : ''); st.className = okN === made.length ? 'status ok' : 'status err';
+  st.textContent = `✔ ${okN} created (PIN 1234)` + (okN < made.length ? `, ✖ ${made.length - okN} failed` : ''); st.className = okN === made.length ? 'status ok' : 'status err';
   btn.disabled = false;
-  $('bulkOut').innerHTML = `<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Username</th><th>Password</th></tr></thead><tbody>` +
-    made.map(x => `<tr><td>${esc(x.name)}</td><td>${x.ok ? esc(x.username) : '—'}</td><td>${x.ok ? '<code>' + esc(x.password) + '</code>' : '<span class="warn">' + esc(x.err) + '</span>'}</td></tr>`).join('') + `</tbody></table></div>
+  $('bulkOut').innerHTML = `<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Mobile</th><th>Username</th><th>PIN</th></tr></thead><tbody>` +
+    made.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.mobile)}</td><td>${x.ok ? esc(x.username) : '—'}</td><td>${x.ok ? '<code>' + esc(x.pin) + '</code>' : '<span class="warn">' + esc(x.err) + '</span>'}</td></tr>`).join('') + `</tbody></table></div>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">⬇ Download list</button><button class="btn ghost" onclick="exportUsers(true)">💬 Copy for WhatsApp</button></div>`;
   await refreshUsers();
 }
 async function exportUsers(whatsapp){
   await refreshUsers();
-  const unknown = USERS.filter(u => !CREDS[u.username]);
-  if(unknown.length && confirm(`${unknown.length} user(s) ka password pata nahi (secure hashed hai).\n\nOK = unka naya password generate karke reset kar do (purane password band ho jayenge)\nCancel = unka password khali chhod do`)){
-    for(const u of unknown){ const pw = genPassword(); try{ await api('PUT', '/api/admin/users/' + u.uid, {password: pw}); CREDS[u.username] = pw; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
+  const unknown = USERS.filter(u => !u.pending && !CREDS[u.username]);
+  if(unknown.length && confirm(`${unknown.length} user(s) ka PIN pata nahi (secure hashed hai — agar admin ne kabhi nahi badla to woh 1234 hi hoga).\n\nOK = unka PIN 1234 pe reset kar do (purane sessions band ho jayenge)\nCancel = unka PIN khali chhod do`)){
+    for(const u of unknown){ const pin = genPin(); try{ await api('PUT', '/api/admin/users/' + u.uid, {pin}); CREDS[u.username] = pin; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
   }
-  const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.map(u => ({name: u.name, username: u.username, password: CREDS[u.username] || ''}));
+  const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.filter(u => !u.pending).map(u => ({name: u.name, username: u.username, mobile: u.mobile || '', pin: CREDS[u.username] || ''}));
   if(whatsapp){
-    const txt = rows.map(r => `*${school} – Marks Entry*\nName: ${r.name}\nUsername: ${r.username}\nPassword: ${r.password || '(not shown)'}`).join('\n\n');
+    const txt = rows.map(r => `*${school} – Marks Entry*\nName: ${r.name}\nUsername: ${r.username}\nPIN: ${r.pin || '(not shown)'}`).join('\n\n');
     try{ await navigator.clipboard.writeText(txt); alert('Copy ho gaya — WhatsApp mein paste kar do.'); }
     catch(e){ prompt('Copy this text:', txt); }
     return;
   }
   const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const csv = '\uFEFF' + [['Name', 'Username', 'Password'].map(q).join(',')].concat(rows.map(r => [r.name, r.username, r.password].map(q).join(','))).join('\r\n');
+  const csv = '\uFEFF' + [['Name', 'Mobile', 'Username', 'PIN'].map(q).join(',')].concat(rows.map(r => [r.name, r.mobile, r.username, r.pin].map(q).join(','))).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'})); a.download = 'marks-entry-users.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
-function newUser(){ EDIT = {uid: null, assign: {}}; $('credsBox').innerHTML = ''; renderEditor({name:'', username:'', active:true}, genPassword()); $('bulkCard').style.display = 'none'; }
+function newUser(){ EDIT = {uid: null, assign: {}}; $('credsBox').innerHTML = ''; renderEditor({name:'', username:'', mobile:'', active:true}, genPin()); $('bulkCard').style.display = 'none'; }
 function editUser(uid){
   const u = USERS.find(x => x.uid === uid); if(!u) return;
-  EDIT = {uid, username: u.username, assign: JSON.parse(JSON.stringify(u.assign || {}))}; $('credsBox').innerHTML = '';
+  EDIT = {uid, username: u.username, assign: JSON.parse(JSON.stringify(u.assign || {}))};
+  $('credsBox').innerHTML = '';
   renderEditor(u, '');
 }
 function isOn(c, st, sub){ return !!(EDIT.assign[c] && EDIT.assign[c][st] && EDIT.assign[c][st][sub]); }
@@ -316,9 +385,12 @@ function renderEditor(u, pw){
     <div class="row">
       <div class="field"><label>Name ${isNew ? '(login username is made from this)' : ''}</label><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30">
         ${isNew ? '' : `<div class="muted" style="margin-top:4px">Username: <b>${esc(u.username)}</b></div>`}</div>
-      <div class="field"><label>${isNew ? 'Password' : 'New password (leave blank to keep)'}</label>
-        <div style="display:flex;gap:6px"><input class="txt" id="ePass" value="${esc(pw)}" autocomplete="new-password">
-        <button class="btn sm ghost" type="button" onclick="$('ePass').value=genPassword()">Generate</button></div></div>
+      <div class="field"><label>WhatsApp mobile</label><input class="txt" id="eMobile" value="${esc(u.mobile || '')}" maxlength="15" inputmode="numeric" placeholder="10-digit number"></div>
+    </div>
+    <div class="row">
+      <div class="field" style="max-width:220px"><label>${isNew ? '4-digit PIN' : 'New PIN (leave blank to keep)'}</label>
+        <div style="display:flex;gap:6px"><input class="txt" id="ePin" value="${esc(pw)}" maxlength="4" inputmode="numeric" autocomplete="new-password" style="letter-spacing:4px;font-weight:700">
+        <button class="btn sm ghost" type="button" onclick="$('ePin').value='1234'">Reset to 1234</button></div></div>
     </div>
     <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:14px"><input type="checkbox" id="eActive" ${u.active !== false ? 'checked' : ''}> Account active (can log in)</label>
     <label style="display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px"><input type="checkbox" id="eShow" ${u.showFilled || u.canEdit ? 'checked' : ''}> Show already-filled marks in the student list (off = teacher sees only students still empty)</label>
@@ -344,23 +416,24 @@ function grpAll(c, st, on){
 }
 async function saveUser(){
   const st = $('editStatus'), btn = $('saveUserBtn');
-  const name = $('eName').value.trim(), username = EDIT.uid ? EDIT.username : makeUsername(name), password = $('ePass').value, active = $('eActive').checked, canEdit = $('eEdit').checked, showFilled = $('eShow').checked || $('eEdit').checked;
+  const name = $('eName').value.trim(), username = EDIT.uid ? EDIT.username : makeUsername(name), mobile = $('eMobile').value.replace(/\D/g, ''), pin = $('ePin').value.trim(), active = $('eActive').checked, canEdit = $('eEdit').checked, showFilled = $('eShow').checked || $('eEdit').checked;
   st.className = 'status';
   if(!name || !username){ st.textContent = 'Name is required.'; st.className = 'status err'; return; }
   btn.disabled = true; st.textContent = 'Saving…';
   try{
     if(!EDIT.uid){
-      if(password.length < 6) throw new Error('Password must be at least 6 characters');
-      await api('POST', '/api/admin/users', {name, username, password, active, canEdit, showFilled, assign: EDIT.assign});
-      CREDS[username] = password;
-      $('credsBox').innerHTML = `<div class="creds"><b>User created.</b> Share these login details:<br>Username: <code>${esc(username)}</code> &nbsp; Password: <code>${esc(password)}</code>
-        <div class="muted" style="margin-top:4px">The password cannot be viewed again later — you can only set a new one.</div></div>`;
+      if(!/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits');
+      await api('POST', '/api/admin/users', {name, username, mobile, pin, active, canEdit, showFilled, assign: EDIT.assign});
+      CREDS[username] = pin;
+      $('credsBox').innerHTML = `<div class="creds"><b>User created.</b> Share these login details:<br>Username: <code>${esc(username)}</code> &nbsp; PIN: <code>${esc(pin)}</code>
+        <div class="muted" style="margin-top:4px">The PIN cannot be viewed again later — you can only set a new one.</div></div>`;
     }else{
-      const body = {name, username, active, canEdit, showFilled, assign: EDIT.assign};
-      if(password){ if(password.length < 6) throw new Error('Password must be at least 6 characters'); body.password = password; }
+      const body = {name, username, mobile, active, canEdit, showFilled, assign: EDIT.assign};
+      if(EDIT.approveOnSave) body.approve = true;
+      if(pin){ if(!/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits'); body.pin = pin; }
       await api('PUT', '/api/admin/users/' + EDIT.uid, body);
-      if(password) CREDS[username] = password;
-      if(password) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> password <code>${esc(password)}</code> (old sessions were logged out)</div>`;
+      if(pin) CREDS[username] = pin;
+      if(pin) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> PIN <code>${esc(pin)}</code> (old sessions were logged out)</div>`;
     }
     closeEditor(); await refreshUsers();
   }catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; btn.disabled = false; }
@@ -378,10 +451,10 @@ async function deleteUser(){
 
 /* ---------- coverage & progress ---------- */
 async function loadCoverage(){
-  const t = $('cTerm').value, a = $('cAss').value, f = $('cFilter').value, out = $('covOut');
+  const a = $('cAss').value, f = $('cFilter').value, out = $('covOut');
   out.innerHTML = '<div class="card empty">Loading…</div>'; $('covSummary').innerHTML = '';
   let rows;
-  try{ await refreshUsers(); rows = (await api('GET', `/api/progress?term=${encodeURIComponent(t)}&ass=${encodeURIComponent(a)}`)).rows; }
+  try{ await refreshUsers(); rows = (await api('GET', '/api/progress')).rows; if(a) rows = rows.filter(r => r.ass === a); }
   catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
   const owners = {};
   USERS.filter(u => u.active).forEach(u => Object.keys(u.assign || {}).forEach(c => Object.keys(u.assign[c]).forEach(st => Object.keys(u.assign[c][st]).forEach(sub => {
