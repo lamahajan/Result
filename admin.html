@@ -357,7 +357,7 @@ function openBulkUsers(){
   $('bulkCard').style.display = 'block';
   $('bulkCard').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Bulk add users</b>
       <button class="btn sm ghost" onclick="$('bulkCard').style.display='none'">✕ Close</button></div>
-    <div class="muted" style="margin-bottom:6px">Ek line mein: Naam, Mobile number (comma se alag). Username naam se apne aap ban jayega, PIN sab ka 1234 hoga. Subjects baad mein Edit se assign karna.</div>
+    <div class="muted" style="margin-bottom:6px">One user per line: Name, Mobile number (separated by a comma). The username is generated from the name automatically, and everyone gets PIN 1234. Assign subjects afterwards using Edit.</div>
     <textarea id="bulkNames" class="txt" rows="7" placeholder="Rajesh Kumar, 9876543210&#10;Simran Kaur, 9123456780&#10;Amit Sharma" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:600 14px inherit;outline:none"></textarea>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;font-size:13px">
       <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="bShow"> Show already-filled marks</label>
@@ -370,7 +370,7 @@ async function runBulkUsers(){
     .map(line => { const [n, m] = line.split(','); return {name: (n || '').trim().slice(0, 30), mobile: (m || '').replace(/\D/g, '').slice(0, 15)}; })
     .filter(e => e.name);
   const st = $('bulkStatus'), btn = $('bulkGo');
-  if(!entries.length){ st.textContent = 'Kam se kam ek naam likho.'; st.className = 'status err'; return; }
+  if(!entries.length){ st.textContent = 'Enter at least one name.'; st.className = 'status err'; return; }
   btn.disabled = true; st.className = 'status';
   const taken = new Set(USERS.map(u => u.username)), canEdit = $('bEdit').checked, showFilled = $('bShow').checked || canEdit, pin = '1234', made = [];
   for(let i = 0; i < entries.length; i++){
@@ -390,13 +390,13 @@ async function runBulkUsers(){
 async function exportUsers(whatsapp){
   await refreshUsers();
   const unknown = USERS.filter(u => !u.pending && !CREDS[u.username]);
-  if(unknown.length && confirm(`${unknown.length} user(s) ka PIN pata nahi (secure hashed hai — agar admin ne kabhi nahi badla to woh 1234 hi hoga).\n\nOK = unka PIN 1234 pe reset kar do (purane sessions band ho jayenge)\nCancel = unka PIN khali chhod do`)){
+  if(unknown.length && confirm(`${unknown.length} user(s) have a PIN that cannot be shown (PINs are stored hashed — if it was never changed, it is still 1234).\n\nOK = reset their PIN to 1234 (their old sessions will be logged out)\nCancel = leave their PIN blank in the list`)){
     for(const u of unknown){ const pin = genPin(); try{ await api('PUT', '/api/admin/users/' + u.uid, {pin}); CREDS[u.username] = pin; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
   }
   const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.filter(u => !u.pending).map(u => ({name: u.name, username: u.username, mobile: u.mobile || '', pin: CREDS[u.username] || ''}));
   if(whatsapp){
     const txt = rows.map(r => `*${school} – Marks Entry*\nName: ${r.name}\nUsername: ${r.username}\nPIN: ${r.pin || '(not shown)'}`).join('\n\n');
-    try{ await navigator.clipboard.writeText(txt); alert('Copy ho gaya — WhatsApp mein paste kar do.'); }
+    try{ await navigator.clipboard.writeText(txt); alert('Copied — paste it into WhatsApp.'); }
     catch(e){ prompt('Copy this text:', txt); }
     return;
   }
