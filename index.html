@@ -94,6 +94,7 @@
   <input type="password" id="passInput" placeholder="Password" autocomplete="current-password">
   <button id="loginBtn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
+  <div style="margin-top:16px;font-size:12.5px;color:var(--muted)">New teacher? <a href="registration.html" style="color:var(--brand-d);font-weight:700;text-decoration:none">Register here</a></div>
 </div>
 
 <div id="app" class="hidden"><div class="shell">
@@ -105,7 +106,7 @@
         <div class="field"><label>Class</label><select id="selClass" onchange="onClass()"></select></div>
         <div class="field"><label>Stream</label><select id="selStream" onchange="onStream()"></select></div>
         <div class="field"><label>Section</label><select id="selSection" onchange="onFilter()"></select></div>
-        <div class="field"><label>Term</label><select id="selTerm" onchange="onFilter()"></select></div>
+        <div class="field"><label>Active term</label><div id="activeTermBox" style="width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:10px;font:700 13px var(--sans);background:var(--card);color:var(--brand-d);box-sizing:border-box">—</div></div>
         <div class="field"><label>Subject</label><select id="selSubject" onchange="onSubject()"></select></div>
         <div class="field"><label>Assessment</label><select id="selAss" onchange="onFilter()"></select></div>
       </div>
@@ -114,7 +115,6 @@
   </aside>
   <section class="content">
     <div class="topbar"><span class="t" id="pageTitle">📝 Marks Entry</span>
-      <div class="hchips" id="hdrChips"></div>
       <button class="btn ghost hbtn" id="btnRefresh" onclick="poll(true)">↻ Refresh</button>
       <button class="btn ghost hbtn" id="btnBulk" onclick="openBulk()">⚡ Bulk entry</button>
       <button class="btn hbtn" id="btnProg" onclick="toggleProg()">📊 Progress</button>
@@ -123,15 +123,7 @@
       <div id="noAssign" class="card empty hidden">No class or subject has been assigned to you yet. Please contact the admin.</div>
       <div id="paneEntry"><div id="sheet"><div class="card empty">← Left side se class, subject aur assessment select karo.</div></div></div>
       <div id="paneProg" class="hidden">
-      <div class="card">
-        <div class="row">
-          <div class="field"><label>Term</label><select id="pTerm"></select></div>
-          <div class="field"><label>Assessment</label><select id="pAss"></select></div>
-          <div class="field"><label>Show</label><select id="pFilter"><option value="pending">Pending / incomplete only</option><option value="all">All</option></select></div>
-          <div class="field" style="flex:0"><label>&nbsp;</label><button class="btn" onclick="loadProgress()">Check</button></div>
-        </div>
-        <div class="note">Only your assigned classes and subjects are shown. Optional subjects show just how many marks are filled.</div>
-      </div>
+      <div class="note" style="margin-bottom:10px">Showing everything assigned to you for the admin's active term — no need to search.</div>
       <div id="progOut"></div>
     </div>
     </main></div>
@@ -199,17 +191,13 @@ function showTab(t){
   $('filters').classList.toggle('hidden', t !== 'entry' || !hasAssign());
   $('pageTitle').textContent = t === 'entry' ? '📝 Marks Entry' : '📊 My Progress';
   $('btnProg').textContent = t === 'entry' ? '📊 Progress' : '← Marks Entry';
-  ['btnRefresh', 'btnBulk', 'hdrChips'].forEach(i => $(i).classList.toggle('hidden', t !== 'entry'));
+  ['btnRefresh', 'btnBulk'].forEach(i => $(i).classList.toggle('hidden', t !== 'entry'));
   if(t === 'prog' && CFG) loadProgress();
   hdr();
 }
 function toggleProg(){ showTab(TAB === 'prog' ? 'entry' : 'prog'); }
 function hdr(){
-  const box = $('hdrChips'), on = !!S;
-  $('btnRefresh').disabled = !on; $('btnBulk').disabled = !on;
-  if(!on){ box.innerHTML = ''; return; }
-  box.innerHTML = `<span class="chip">Max ${S.conf.maxMark}</span><span class="chip">Pass ${S.conf.minPass}</span><span class="chip">Students ${S.roster.length + (S.hidden || 0)}</span><span class="chip" id="chipFilled"></span>` + (S.hidden ? `<span class="chip" title="Already entered, hidden">${S.hidden} done (hidden)</span>` : '');
-  updateFilled();
+  $('btnRefresh').disabled = !S; $('btnBulk').disabled = !S;
 }
 const hasAssign = () => Object.keys(ASSIGN || {}).length > 0;
 
@@ -217,13 +205,15 @@ const hasAssign = () => Object.keys(ASSIGN || {}).length > 0;
 async function start(){
   const b = await api('GET', '/api/bootstrap');
   if(b.role !== 'user'){ logout('Please use a user account here (the admin panel is a separate page).'); return; }
-  CFG = b.config; STUDENTS = b.students || {}; ASSIGN = b.assign || {}; ME = b.me;
+  CFG = b.config; CFG.activeTerm = b.activeTerm || null; STUDENTS = b.students || {}; ASSIGN = b.assign || {}; ME = b.me;
   $('lockScreen').classList.add('hidden'); $('app').classList.remove('hidden');
   $('meName').textContent = ME.name;
   const sc = CFG.school || {};
   $('schoolName').textContent = sc.name || 'Marks Entry';
   const yr = v => (String(v || '').match(/\d{4}/) || [''])[0], f = yr(sc.sessionFrom), t = yr(sc.sessionUpto);
   $('schoolSub').textContent = f ? 'Session ' + f + (t && t !== f ? '–' + t.slice(2) : '') : '';
+  const tb = $('activeTermBox');
+  tb.textContent = CFG.activeTerm ? ((CFG.terms[CFG.activeTerm] || {}).printName || (CFG.terms[CFG.activeTerm] || {}).name || CFG.activeTerm) : 'Not set by admin yet';
   $('noAssign').classList.toggle('hidden', hasAssign());
   fillClasses(); fillTermAss(); showTab('entry');
 }
@@ -242,10 +232,7 @@ function fillClasses(){
   if(cs.length === 1) onClass();
 }
 function fillTermAss(){
-  const terms = byKey(CFG.terms, t => t.sqc || t.id).map(k => opt(k, CFG.terms[k].printName || CFG.terms[k].name)).join('');
-  const asses = byKey(CFG.assessments, a => a.sqc || a.id).map(k => opt(k, CFG.assessments[k].name)).join('');
-  $('selTerm').innerHTML = opt('', 'Select term…') + terms;
-  $('pTerm').innerHTML = terms; $('pAss').innerHTML = asses;
+  /* Term is fixed by the admin (see activeTermBox); nothing to populate here. */
 }
 
 /* ---------- cascading selects (limited to what is assigned to me) ---------- */
@@ -288,7 +275,7 @@ function gradeOf(m, max, gid){
 const fmt = v => v == null ? '' : String(v);
 
 /* ---------- sheet ---------- */
-const ctx = () => ({c: $('selClass').value, st: $('selStream').value, sec: $('selSection').value, t: $('selTerm').value, sub: $('selSubject').value, a: $('selAss').value});
+const ctx = () => ({c: $('selClass').value, st: $('selStream').value, sec: $('selSection').value, t: CFG.activeTerm || '', sub: $('selSubject').value, a: $('selAss').value});
 const sheetQ = x => `term=${encodeURIComponent(x.t)}&ass=${encodeURIComponent(x.a)}&sub=${encodeURIComponent(x.sub)}&c=${encodeURIComponent(x.c)}&st=${encodeURIComponent(x.st)}`;
 
 async function onFilter(){
@@ -317,14 +304,15 @@ function renderSheet(){
     const v = k in S.dirty ? S.dirty[k] : S.base[k], g = gradeOf(v, S.conf.maxMark, S.conf.gradeId);
     return `<tr><td>${esc(s.rollNo)}</td><td>${esc(s.name)}</td><td>${esc(s.admNo)}</td><td class="by">${esc(s.father)}</td>
       <td><input class="m ${k in S.dirty ? 'dirty' : ''} ${S.lock[k] ? 'locked' : ''}" ${S.lock[k] ? 'readonly title="Locked"' : ''} data-k="${esc(k)}" value="${esc(fmt(v))}" inputmode="decimal" autocomplete="off" oninput="onCell(this)" onkeydown="cellKey(event,this)"></td>
-      <td><span class="pill ${g.c}" id="g_${esc(k)}">${esc(g.g)}</span></td><td class="by" id="by_${esc(k)}">${esc(S.by[k])}</td></tr>`;
+      <td><span class="pill ${g.c}" id="g_${esc(k)}" style="${g.small ? 'white-space:normal;background:none;color:var(--red);font-size:11px;font-weight:800;padding:0;border-radius:0' : ''}">${esc(g.g)}</span></td></tr>`;
   }).join('');
   $('sheet').innerHTML = `
     <div class="scroll"><table>
-      <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th><th>Entered by</th></tr></thead>
+      <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
     <div class="note">${ME.canEdit ? '' : '🔒 Saved marks are locked; contact the admin to change them. '}Type marks and press Enter to jump to the next student. Type AB for absent. Only your changed cells are saved.</div>
     <div class="savebar"><span class="status" id="saveStatus"></span><button class="btn" id="saveBtn" onclick="save()">Save Marks</button></div>`;
+  updateSaveState();
   hdr();
 }
 function bulkFill(over){
@@ -356,21 +344,33 @@ function parseCell(raw){
   if(v === 'AB' || v === 'A') return {v:'AB'};
   if(!/^\d+(\.\d{1,2})?$/.test(v)) return {bad:true};
   const n = parseFloat(v);
-  if(n > S.conf.maxMark) return {bad:true};
+  if(n > S.conf.maxMark) return {bad:true, over:true};
   return {v:n};
 }
 function onCell(inp){
   const k = inp.dataset.k, p = parseCell(inp.value);
   inp.classList.toggle('bad', !!p.bad);
-  if(p.bad){ S.bad[k] = true; setGrade(k, {g:'!', c:'g-low'}); return; }
+  if(p.bad){
+    S.bad[k] = true;
+    setGrade(k, p.over ? {g:'Max marks allowed = ' + S.conf.maxMark, c:'g-low', small:true} : {g:'!', c:'g-low'});
+    updateSaveState();
+    return;
+  }
   delete S.bad[k];
   if(p.v === S.base[k]) delete S.dirty[k]; else S.dirty[k] = p.v;
   inp.classList.toggle('dirty', k in S.dirty);
   setGrade(k, gradeOf(p.v, S.conf.maxMark, S.conf.gradeId));
   updateFilled();
+  updateSaveState();
   $('saveStatus').textContent = '';
 }
-function setGrade(k, g){ const el = $('g_' + k); if(el){ el.textContent = g.g; el.className = 'pill ' + g.c; } }
+function updateSaveState(){ const b = $('saveBtn'); if(b) b.disabled = !!(S && Object.keys(S.bad).length); }
+function setGrade(k, g){
+  const el = $('g_' + k); if(!el) return;
+  el.textContent = g.g;
+  el.className = 'pill ' + g.c;
+  el.style.cssText = g.small ? 'white-space:normal;background:none;color:var(--red);font-size:11px;font-weight:800;padding:0;border-radius:0' : '';
+}
 function cellKey(e, inp){
   if(e.key !== 'Enter') return;
   e.preventDefault();
@@ -424,22 +424,28 @@ async function poll(manual){
 
 /* ---------- my progress ---------- */
 async function loadProgress(){
-  const t = $('pTerm').value, a = $('pAss').value, only = $('pFilter').value === 'pending', out = $('progOut');
+  const out = $('progOut');
   if(!CFG) return;
   out.innerHTML = '<div class="card empty">Loading…</div>';
-  let rows;
-  try{ rows = (await api('GET', `/api/progress?term=${encodeURIComponent(t)}&ass=${encodeURIComponent(a)}`)).rows; }catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
-  const done = r => r.optional ? r.filled > 0 : r.filled >= r.total;
-  const allDone = rows.every(r => r.optional || done(r));
-  rows = rows.filter(r => !only || !done(r));
-  rows.sort((x, y) => (((CFG.classes[x.c] || {}).id || 0) - ((CFG.classes[y.c] || {}).id || 0)) || (((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0)));
-  out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Filled</th><th></th><th>Staff</th></tr></thead><tbody>` +
-    (rows.length ? rows.map(r => {
-      const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
-      return `<tr><td>${esc(className(r.c))}</td><td>${esc((CFG.streams[r.st] || {}).name)}</td><td>${esc((CFG.subjects[r.sub] || {}).name || r.sub)}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${esc((r.who || []).join(', '))}</td></tr>`;
-    }).join('') : `<tr><td colspan="6" class="empty">${only ? 'Nothing pending for this term and assessment.' : 'No rows.'}</td></tr>`) +
-    `</tbody></table></div></div>` + (allDone && rows.length === 0 ? '<div class="note" style="color:var(--green);font-weight:600">All your compulsory subjects are complete for this assessment.</div>' : '');
+  let rows, term;
+  try{ const r = await api('GET', '/api/progress'); rows = r.rows; term = r.term; }catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
+  if(!rows.length){ out.innerHTML = '<div class="card empty">No class / subject is assigned to you yet.</div>'; return; }
+  rows.sort((x, y) => (((CFG.classes[x.c] || {}).id || 0) - ((CFG.classes[y.c] || {}).id || 0)) || (((CFG.assessments[x.ass] || {}).sqc || 0) - ((CFG.assessments[y.ass] || {}).sqc || 0)) || (((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0)));
+  const byClass = {};
+  rows.forEach(r => { const k = r.c + '|' + r.st; (byClass[k] = byClass[k] || []).push(r); });
+  const termName = term ? ((CFG.terms[term] || {}).printName || (CFG.terms[term] || {}).name || term) : '';
+  out.innerHTML = (termName ? `<div class="note" style="margin-bottom:8px">Term: <b>${esc(termName)}</b></div>` : '') +
+    Object.entries(byClass).map(([k, rs]) => {
+      const [c, st] = k.split('|');
+      const rowsHtml = rs.map(r => {
+        const done = r.optional ? r.filled > 0 : r.filled >= r.total;
+        const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
+        return `<tr><td>${esc((CFG.assessments[r.ass] || {}).name || r.ass)}</td><td>${esc((CFG.subjects[r.sub] || {}).name || r.sub)}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
+          <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${done ? '✔ Done' : 'Pending'}</td></tr>`;
+      }).join('');
+      return `<div class="card" style="padding:0;margin-bottom:10px"><div style="padding:10px 14px;font-weight:800">${esc(className(c))} · ${esc((CFG.streams[st] || {}).name || st)}</div>
+        <div class="scroll"><table><thead><tr><th>Assessment</th><th>Subject</th><th>Filled</th><th></th><th>Status</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
+    }).join('');
 }
 
 /* resume a session that is still open in this browser tab */
