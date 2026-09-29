@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
 <title>Register - Marks Entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#f0f4ff;--brand:#7c5cbf;--brand-d:#5e40a0;--brand-s:rgba(124,92,191,.10);--brand-b:rgba(124,92,191,.28);--text:#1a1035;--muted:#6b5b95;--border:#e0d9f5;--red:#d04040;--green:#2d9e6b;--shm:0 6px 22px rgba(100,80,180,.14);--sans:'Plus Jakarta Sans',-apple-system,Segoe UI,Roboto,Arial,sans-serif;--num:'Outfit','Plus Jakarta Sans',sans-serif}
@@ -44,6 +47,47 @@
   .addrow select{flex:1}
   .addrow button{flex-shrink:0;padding:0 16px;background:var(--brand-s);color:var(--brand-d);border:none;border-radius:10px;font:700 13px var(--sans);cursor:pointer}
   .empty-note{font-size:12px;color:var(--muted);padding:4px 2px}
+
+  /* ===== responsive / touch polish (desktop + mobile) ===== */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  button,.btn,.tab,.sb-btn,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,a:focus-visible,summary:focus-visible,.tab:focus-visible{outline:3px solid rgba(99,102,241,.45);outline-offset:2px}
+  img{max-width:100%}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  /* generic table -> stacked cards on phones (labels are added by the script at the end of <body>) */
+  @media(max-width:700px){
+    table.rt{display:block;border-spacing:0;font-size:14px}
+    table.rt thead{display:none}
+    table.rt tbody{display:block}
+    table.rt tr{display:block;background:#fff;border:1px solid var(--border);border-radius:14px;padding:4px 14px;margin:0 0 10px}
+    table.rt td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border:0;border-radius:0;background:none;text-align:right;min-width:0;word-break:break-word}
+    table.rt td:not(:last-child){border-bottom:1px dashed var(--border)}
+    table.rt td[data-label]::before{content:attr(data-label);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;flex-shrink:0}
+    table.rt td[colspan]{display:block;text-align:center}
+    table.rt td .bar{width:120px}
+    table.rt td:last-child:empty{display:none}
+    .scroll{max-height:none!important;overflow:visible!important}
+  }
+
+  @media(max-width:700px){
+    input,select,textarea{font-size:16px!important}
+    .btn,button{min-height:42px}
+    .btn.sm{min-height:36px}
+    .card{padding:14px!important;border-radius:14px}
+  }
+
+  .lock{max-width:440px}
+  @media(max-width:700px){
+    .lock{margin:4vh auto;width:calc(100% - 28px);max-width:440px;padding:28px 20px}
+    .logo{width:76px;height:76px}
+    .addrow{flex-wrap:wrap}
+    .addrow select{flex:1 1 100%}
+    .addrow button{flex:1 1 100%;min-height:44px}
+    .pickrow{padding:10px 12px}
+    .pickrow button{font-size:22px;padding:0 6px}
+    input#pin{font-size:20px!important}
+  }
 </style>
 </head>
 <body>
@@ -70,7 +114,7 @@
 
   <div class="field">
     <label>Which class &amp; subject do you teach?</label>
-    <div class="picks" id="picks"><div class="empty-note" id="picksEmpty">Add at least one below (optional, but helps the admin approve faster).</div></div>
+    <div class="picks" id="picks"><div class="empty-note" id="picksEmpty">Choose class, stream &amp; subject below, then tap <b>+ Add</b> (repeat for each subject). Optional, but helps the admin approve faster.</div></div>
     <div class="addrow">
       <select id="pkClass" onchange="fillStreams()"></select>
       <select id="pkStream" onchange="fillSubjects()"></select>
@@ -110,26 +154,29 @@ async function loadMeta(){
   const cls = Object.keys(META.classSubjects || {});
   if(!cls.length){ document.querySelector('.addrow').classList.add('hidden'); return; }
   cls.sort((a, b) => ((META.classes[a]||{}).id||0) - ((META.classes[b]||{}).id||0));
-  $('pkClass').innerHTML = cls.map(c => opt(c, (META.classes[c]||{}).name || c)).join('');
+  $('pkClass').innerHTML = opt('', 'Class…') + cls.map(c => opt(c, (META.classes[c]||{}).name || c)).join('');
   fillStreams();
 }
 function fillStreams(){
   const c = $('pkClass').value, sts = Object.keys((META.classSubjects[c]) || {});
   sts.sort((a, b) => ((META.streams[a]||{}).id||0) - ((META.streams[b]||{}).id||0));
-  $('pkStream').innerHTML = sts.map(s => opt(s, (META.streams[s]||{}).name || s)).join('');
+  $('pkStream').innerHTML = (sts.length === 1 ? '' : opt('', 'Stream…')) + sts.map(s => opt(s, (META.streams[s]||{}).name || s)).join('');
   fillSubjects();
 }
 function fillSubjects(){
   const c = $('pkClass').value, st = $('pkStream').value;
   const subs = Object.keys(((META.classSubjects[c] || {})[st]) || {});
   subs.sort((a, b) => ((META.subjects[a]||{}).id||0) - ((META.subjects[b]||{}).id||0));
-  $('pkSubject').innerHTML = subs.map(s => opt(s, (META.subjects[s]||{}).name || s)).join('');
+  $('pkSubject').innerHTML = opt('', 'Subject…') + subs.map(s => opt(s, (META.subjects[s]||{}).name || s)).join('');
 }
 function addPick(){
   const c = $('pkClass').value, st = $('pkStream').value, sub = $('pkSubject').value;
-  if(!c || !st || !sub) return;
+  if(!c || !st || !sub){ const m = $('msg'); m.className = 'err'; m.textContent = 'Select class, stream and subject first, then tap + Add.'; return false; }
+  $('msg').textContent = '';
   ((PICKED[c] = PICKED[c] || {})[st] = PICKED[c][st] || {})[sub] = true;
   renderPicks();
+  $('pkSubject').value = '';
+  return true;
 }
 function removePick(c, st, sub){
   if(PICKED[c] && PICKED[c][st]){ delete PICKED[c][st][sub]; if(!Object.keys(PICKED[c][st]).length) delete PICKED[c][st]; if(!Object.keys(PICKED[c]).length) delete PICKED[c]; }
@@ -141,7 +188,7 @@ function renderPicks(){
     const label = ((META.classes[c]||{}).name || c) + ' · ' + ((META.streams[st]||{}).name || st) + ' · ' + ((META.subjects[sub]||{}).name || sub);
     rows.push('<div class="pickrow">' + label.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '<button type="button" onclick="removePick(\'' + c + '\',\'' + st + '\',\'' + sub + '\')">✕</button></div>');
   }
-  $('picks').innerHTML = rows.length ? rows.join('') : '<div class="empty-note" id="picksEmpty">Add at least one below (optional, but helps the admin approve faster).</div>';
+  $('picks').innerHTML = rows.length ? rows.join('') : '<div class="empty-note" id="picksEmpty">Choose class, stream &amp; subject below, then tap <b>+ Add</b> (repeat for each subject). Optional, but helps the admin approve faster.</div>';
 }
 loadMeta();
 
@@ -160,6 +207,10 @@ async function submitForm(){
   if(!name){ msg.textContent = 'Please enter your name.'; msg.className = 'err'; return; }
   if(!/^\d{7,15}$/.test(mobile)){ msg.textContent = 'Enter a valid WhatsApp mobile number.'; msg.className = 'err'; return; }
   if(!/^\d{4}$/.test(pin)){ msg.textContent = 'PIN must be exactly 4 digits.'; msg.className = 'err'; return; }
+
+  // if a class/stream/subject is selected but "+ Add" was not tapped, include it
+  if($('pkClass').value && $('pkStream').value && $('pkSubject').value) addPick();
+  else if($('pkClass').value && !Object.keys(PICKED).length){ msg.textContent = 'Choose a subject and tap + Add (or clear the class).'; msg.className = 'err'; return; }
 
   setBusy(true);
   try{
