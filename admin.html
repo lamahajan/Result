@@ -97,6 +97,8 @@
   .uf-hint b{color:var(--accent2)}
   .uf-pin{display:flex;gap:8px;align-items:center}
   .uf-pin input.txt{max-width:140px;text-align:center;letter-spacing:8px;font-weight:800;font-size:18px;padding-left:12px}
+  .uf-eye{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#f8fafc;cursor:pointer;font-size:16px;flex-shrink:0}
+  .uf-eye:hover{background:#eef2ff}
   .uf-chip{padding:7px 12px;border-radius:999px;border:1px dashed #a5b4fc;background:#f5f7ff;color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
   .uf-chip:hover{background:#e0e7ff}
   .uf-tg{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:background .15s,border-color .15s}
@@ -268,7 +270,7 @@
 const DEFAULT_API = "https://result.result-300.workers.dev";
 const API = DEFAULT_API;
 let TOKEN = sessionStorage.getItem('eca_admin_token') || "";
-let CFG = null, USERS = [], EDIT = null, ACTIVE_TERM = null;
+let CFG = null, USERS = [], EDIT = null, ACTIVE_TERM = null, COV = [];
 let SUB = sessionStorage.getItem('eca_admin_sub') === '1', ME = null, SUB_LOGIN = false;   // SUB = logged in as a sub-admin (limited powers)
 
 const $ = id => document.getElementById(id);
@@ -555,7 +557,8 @@ function renderEditor(u, pw){
       <div class="uf-sec ${editSub ? 'hidden' : ''}">
         <div class="uf-sh">${editSub ? '' : num()}<b>Login PIN</b><span class="muted">${isNew ? '4 digits — the teacher uses it to log in' : 'leave blank to keep the current PIN'}</span></div>
         <div class="uf-pin">
-          <input class="txt" id="ePin" value="${esc(pw)}" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="new-password" oninput="this.value=this.value.replace(/\D/g,'');onPinInput()">
+          <input class="txt" id="ePin" type="password" value="${esc(pw)}" maxlength="4" inputmode="numeric" placeholder="••••" autocomplete="new-password" data-lpignore="true" oninput="this.value=this.value.replace(/\D/g,'');onPinInput()">
+          <button class="uf-eye" type="button" id="pinEye" onclick="togglePin()" aria-label="Show PIN" title="Show / hide PIN">👁</button>
           <button class="uf-chip" type="button" onclick="$('ePin').value='1234';onPinInput()">${isNew ? 'Use default 1234' : 'Reset to 1234'}</button>
         </div>
         <div class="uf-hint">${isNew ? 'You can share the login details right after creating the user.' : 'Changing the PIN logs the user out of all devices.'}</div>
@@ -585,6 +588,10 @@ function renderEditor(u, pw){
   if(isNew) onNameInput();
   onPinInput();
   $('editor').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function togglePin(){
+  const i = $('ePin'), show = i.type === 'password';
+  i.type = show ? 'text' : 'password'; $('pinEye').textContent = show ? '🙈' : '👁'; $('pinEye').setAttribute('aria-label', show ? 'Hide PIN' : 'Show PIN');
 }
 function initials(name){
   const p = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -654,12 +661,26 @@ async function deleteUser(){
 }
 
 /* ---------- coverage & progress ---------- */
+async function clearRecords(c, st, sub, ass){
+  if(SUB) return;
+  const r = COV.find(x => x.c === c && x.st === st && x.sub === sub && x.ass === ass); if(!r) return;
+  const what = `${cname(c)} · ${sname(st)} · ${subname(sub)} · ${assname(ass)}`;
+  const typed = prompt(`CLEAR ENTERED MARKS\n\n${what}\n${r.filled} record(s) will be deleted for this class only.\nTeachers will be able to enter these marks again.\n(A copy is kept in the database log.)\n\nType CLEAR to confirm:`);
+  if(typed === null) return;
+  if(typed.trim().toUpperCase() !== 'CLEAR'){ alert('Not confirmed — nothing was deleted.'); return; }
+  try{
+    const res = await api('POST', '/api/admin/entries/clear', {c, st, sub, ass, confirm: 'CLEAR'});
+    alert(`✔ ${res.cleared} record(s) cleared for ${what}.`);
+    await loadCoverage();
+  }catch(e){ alert('Could not clear: ' + e.message); }
+}
 async function loadCoverage(){
   const a = $('cAss').value, f = $('cFilter').value, out = $('covOut');
   out.innerHTML = '<div class="card empty">Loading…</div>'; $('covSummary').innerHTML = '';
   let rows;
   try{ await refreshUsers(); rows = (await api('GET', '/api/progress')).rows; if(a) rows = rows.filter(r => r.ass === a); }
   catch(e){ out.innerHTML = '<div class="card empty">Error: ' + esc(e.message) + '</div>'; return; }
+  COV = rows;
   const owners = {};
   USERS.filter(u => u.active).forEach(u => Object.keys(u.assign || {}).forEach(c => Object.keys(u.assign[c]).forEach(st => Object.keys(u.assign[c][st]).forEach(sub => {
     (owners[c + '|' + st + '|' + sub] = owners[c + '|' + st + '|' + sub] || []).push(u.name);
@@ -674,7 +695,7 @@ async function loadCoverage(){
     (shown.length ? shown.map(r => {
       const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
       return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${esc(assname(r.ass))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🗑 Clear</button>` : ''}</div></td>
         <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">⚠ Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
     }).join('') : '<tr><td colspan="8" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
 }
