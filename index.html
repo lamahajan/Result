@@ -215,7 +215,8 @@
   }
   .lock input {
     width: 100%;
-    padding: 13px 16px;
+    height: 46px;
+    padding: 0 16px;
     font: 600 14px var(--sans);
     border: 1.5px solid var(--border);
     border-radius: 12px;
@@ -225,11 +226,11 @@
     color: var(--text);
     transition: all 0.15s ease;
   }
-  .lock button {
+  .lock .btn {
     width: 100%;
-    padding: 13px 20px;
+    height: 46px;
+    padding: 0 18px;
     margin-top: 6px;
-    font-size: 15px;
   }
 
   /* 4-digit PIN entry */
@@ -263,18 +264,18 @@
   .pinboxes {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 8px;
     pointer-events: none;
   }
   .pinboxes i {
-    height: 56px;
+    height: 46px;
     border: 1.5px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--card-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
-    font: 800 24px var(--num);
+    font: 800 18px var(--num);
     font-style: normal;
     color: var(--text);
     transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, transform 0.1s;
@@ -283,7 +284,6 @@
     border-color: var(--brand);
     box-shadow: var(--brand-glow);
     background: #fff;
-    transform: scale(1.02);
   }
   .pinboxes i.on {
     background: #fff;
@@ -1307,7 +1307,7 @@
     <input id="passInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" autocapitalize="none" autocorrect="off" oninput="pinInput(this)" onfocus="pinInput(this)">
     <div class="pinboxes" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   </div>
-  <button id="loginBtn" onclick="login()">Log in</button>
+  <button id="loginBtn" class="btn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
   <div style="margin-top:18px;font-size:13px;color:var(--muted)">New teacher? <a href="registration.html" style="color:var(--brand);font-weight:700;text-decoration:none">Register here &rarr;</a></div>
 </div>
@@ -1626,11 +1626,6 @@ function renderSheet(){
       <td><span class="pill ${g.c}" id="g_${esc(k)}" style="${g.small ? 'white-space:normal;background:none;color:var(--red);font-size:11px;font-weight:800;padding:0;border-radius:0' : ''}">${esc(g.g)}</span></td><td class="mm">${esc(meta)}</td></tr>`;
   }).join('');
   $('sheet').innerHTML = `
-    <div class="sumbar">
-      <div class="sb-top"><b id="sumTxt"></b><span class="uns" id="sumUns"></span></div>
-      <div class="sb-bar"><div id="sumFill"></div></div>
-      <div class="seg" id="seg"><button type="button" data-v="all" onclick="setView('all')">All<em id="cAll"></em></button><button type="button" data-v="pending" onclick="setView('pending')">Pending<em id="cPend"></em></button><button type="button" data-v="done" onclick="setView('done')">Entered<em id="cDone"></em></button></div>
-    </div>
     <div class="scroll"><table class="rt">
       <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
