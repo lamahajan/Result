@@ -141,6 +141,46 @@
     background: rgba(255, 255, 255, 0.22);
     transform: translateY(-1px);
   }
+  .hright {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .termbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px 4px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+  }
+  .termbar .tl {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c7d2fe;
+    white-space: nowrap;
+  }
+  .termbar select {
+    width: auto;
+    max-width: 170px;
+    padding: 6px 28px 6px 10px;
+    border-radius: 9px;
+    font: 700 13px var(--sans);
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 9px center;
+  }
+  .termbar select option { color: #0f172a; background: #fff; }
+  .termbar button { padding: 6px 12px; border-radius: 9px; }
+  .termbar .status { font-size: 12px; color: #c7d2fe; white-space: nowrap; }
+  .termbar .status:empty { display: none; }
+  .termbar .status.ok { color: #86efac; }
+  .termbar .status.err { color: #fca5a5; }
 
   /* Main Container */
   main {
@@ -894,6 +934,9 @@
   }
 
   @media (max-width: 700px) {
+    header { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+    .hright { width: 100%; justify-content: space-between; }
+    .termbar .tl { display: none; }
     .uf-grid { grid-template-columns: 1fr; }
     .lock { margin: 4vh auto; width: calc(100% - 24px); padding: 32px 20px; }
     table.rt { display: block; border-spacing: 0; font-size: 14px; }
@@ -958,7 +1001,13 @@
         <div class="sub">Lotus International School <span class="badge b-open hidden" id="subBadge" style="margin-left:6px"></span></div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;align-items:center">
+    <div class="hright">
+      <div class="termbar" id="termCard" title="Teachers can only enter marks for this active term.">
+        <span class="tl">&#128197; Active Feeding Term</span>
+        <select id="termSel"></select>
+        <button type="button" onclick="saveActiveTerm()">Save</button>
+        <span class="status" id="termStatus"></span>
+      </div>
       <button id="acctBtn" class="hidden" onclick="toggleAcct(event)" aria-label="Account">&#128100; Account &#9662;</button>
       <button id="logoutBtn" onclick="logout()">&#128682; Log out</button>
     </div>
@@ -981,14 +1030,6 @@
   </div></div>
 
   <main>
-    <div class="card" id="termCard" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg, #ffffff, #fbfcfe)">
-      <b style="white-space:nowrap;font-size:14.5px">&#128197; Active Feeding Term:</b>
-      <select id="termSel" style="max-width:240px"></select>
-      <button class="btn sm" onclick="saveActiveTerm()">Save Term</button>
-      <span class="status" id="termStatus"></span>
-      <span class="muted" style="margin-left:auto;font-size:12.5px">Teachers can only enter marks for this active term.</span>
-    </div>
-
     <div class="tabs">
       <div class="tab on" id="tabUsers" onclick="showTab('users')">&#128101; Users &amp; Staff</div>
       <div class="tab" id="tabPending" onclick="showTab('pending')">&#128233; Pending Requests <span class="cnt some hidden" id="pendCount"></span></div>
@@ -1175,9 +1216,9 @@ async function start(){
 }
 async function saveActiveTerm(){
   const sel = $('termSel').value, st = $('termStatus');
-  if(!sel){ st.textContent = 'Choose a term first.'; st.className = 'status err'; return; }
+  if(!sel){ st.textContent = 'Choose a term'; st.className = 'status err'; return; }
   st.textContent = 'Saving…'; st.className = 'status';
-  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.textContent = '✔ Saved — teachers will now feed marks for this term.'; st.className = 'status ok'; }
+  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.textContent = '✔ Saved'; st.className = 'status ok'; }
   catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; }
 }
 
