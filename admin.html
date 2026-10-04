@@ -149,6 +149,7 @@
     justify-content: flex-end;
   }
   .termbar {
+    --arr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     display: flex;
     align-items: center;
     gap: 8px;
@@ -172,8 +173,18 @@
     background-color: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: var(--arr);
+    background-repeat: no-repeat;
     background-position: right 9px center;
+  }
+  .termbar select:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    background-image: var(--arr);
+    background-repeat: no-repeat;
+    background-position: right 9px center;
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: none;
+    color: #fff;
   }
   .termbar select option { color: #0f172a; background: #fff; }
   .termbar button { padding: 6px 12px; border-radius: 9px; }
