@@ -1598,8 +1598,8 @@ async function onFilter(){
   $('sheet').innerHTML = '<div class="card empty">Loading…</div>';
   let ex = {};
   try{ ex = (await api('GET', '/api/sheet?' + sheetQ(x))).entries || {}; }catch(e){ $('sheet').innerHTML = '<div class="card empty">Could not load: ' + esc(e.message) + '</div>'; return; }
-  S = {x, conf, roster, base:{}, dirty:{}, bad:{}, by:{}, lock:{}, hidden:0};
-  roster.forEach(([k]) => { const e = ex[k]; S.base[k] = e && e.m != null ? e.m : null; S.by[k] = e ? e.by : ''; if(e && (e.m != null || e.f) && !ME.canEdit) S.lock[k] = true; });
+  S = {x, conf, roster, all:roster, base:{}, dirty:{}, bad:{}, by:{}, lock:{}, unl:{}, hidden:0};
+  roster.forEach(([k]) => { const e = ex[k]; S.base[k] = e && e.m != null ? e.m : null; S.by[k] = e ? e.by : ''; S.unl[k] = !!(e && e.u); if(e && (e.m != null || e.f) && !ME.canEdit && !S.unl[k]) S.lock[k] = true; });
   if(!ME.showFilled){ S.roster = roster.filter(([k]) => !S.lock[k]); S.hidden = roster.length - S.roster.length; }
   renderSheet();
   pollTimer = setInterval(poll, POLL_MS);
@@ -1758,7 +1758,7 @@ async function save(){
   const mine = S, x = S.x;
   try{
     await api('PATCH', '/api/sheet', {term: x.t, ass: x.a, sub: x.sub, c: x.c, st: x.st, changes});
-    keys.forEach(k => { mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : ME.name.slice(0, 20); const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
+    keys.forEach(k => { mine.unl[k] = false; mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : ME.name.slice(0, 20); const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
     document.querySelectorAll('input.m.dirty').forEach(i => { if(!(i.dataset.k in mine.dirty)) i.classList.remove('dirty'); });
     st.textContent = '✔ Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
     if(!ME.canEdit) keys.forEach(k => { if(mine.base[k] != null){ mine.lock[k] = true; const i = document.querySelector(`input.m[data-k="${k}"]`); if(i){ i.readOnly = true; i.classList.add('locked'); i.classList.remove('dirty'); } } });
@@ -1774,6 +1774,8 @@ async function poll(manual){
   try{
     const ex = (await api('GET', '/api/sheet?' + sheetQ(mine.x))).entries || {};
     if(S !== mine) return;
+    /* admin unlocked (or re-locked) records: reload the sheet so those rows appear/disappear - only when the teacher has no unsaved edits */
+    if(!ME.canEdit && !Object.keys(mine.dirty).length && mine.all.some(([k]) => !!(ex[k] && ex[k].u) !== !!mine.unl[k])){ onFilter(); return; }
     let changed = 0;
     mine.roster.forEach(([k]) => {
       const e = ex[k], v = e && e.m != null ? e.m : null;
