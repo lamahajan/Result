@@ -1574,7 +1574,7 @@ async function openRecords(c, st, sub, ass){
   const what = unlockWhat(c, st, sub, ass), x = unlockBase(c, st, sub, ass);
   showRecModal(`<b>${esc(what)}</b><div class="empty">Loading…</div>`);
   try{
-    const q = `term=${encodeURIComponent(x.term)}&ass=${encodeURIComponent(ass)}&sub=${encodeURIComponent(sub)}&c=${encodeURIComponent(c)}&st=${encodeURIComponent(st)}`;
+    const q = `term=${encodeURIComponent(x.term)}&ass=${encodeURIComponent(ass)}&sub=${encodeURIComponent(sub)}&c=${encodeURIComponent(c)}&st=${encodeURIComponent(st)}&staff=1`;
     REC.entries = (await api('GET', '/api/sheet?' + q)).entries || {};
   }catch(e){ showRecModal(`<b>${esc(what)}</b><div class="empty">Could not load: ${esc(e.message)}</div><div style="text-align:right;margin-top:10px"><button class="btn ghost" onclick="closeRecords()">Close</button></div>`); return; }
   renderRecords();
@@ -1588,7 +1588,7 @@ function renderRecords(){
     .sort((p, q) => String(p[1].sectionId).localeCompare(String(q[1].sectionId)) || (p[1].rollNo || 0) - (q[1].rollNo || 0));
   const rows = roster.map(([k, s]) => {
     const e = entries[k] || {}, has = e.m != null || e.f;
-    const act = !has ? '<span class="muted">not entered</span>' : (e.u ? '<span class="badge b-open">🔓 Unlocked</span>' : `<button class="btn sm" data-k="${esc(k)}" onclick="unlockOne(this.dataset.k, this)">🔓 Unlock</button>`);
+    const act = !has ? '<span class="muted">not entered</span>' : (e.ul ? '<span class="badge b-open">🔓 Unlocked</span>' : `<button class="btn sm" data-k="${esc(k)}" onclick="unlockOne(this.dataset.k, this)">🔓 Unlock</button>`);
     return `<tr><td>${esc(s.rollNo)}</td><td>${esc(s.name)}</td><td>${esc(s.admNo)}</td><td>${has ? esc(e.m == null ? '—' : e.m) : ''}</td><td class="muted">${esc(e.by || '')}</td><td>${act}</td></tr>`;
   }).join('');
   showRecModal(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(what)}</b><button class="btn ghost sm" onclick="closeRecords()">✕ Close</button></div>
@@ -1601,7 +1601,7 @@ async function unlockOne(k, btn){
   if(btn){ btn.disabled = true; btn.textContent = 'Unlocking…'; }
   try{
     await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {keys: [k]}));
-    REC.entries[k] = Object.assign({}, REC.entries[k], {u: true});
+    REC.entries[k] = Object.assign({}, REC.entries[k], {ul: true});
     renderRecords();
   }catch(e){ alert('Could not unlock: ' + e.message); if(btn){ btn.disabled = false; btn.textContent = '🔓 Unlock'; } }
 }
