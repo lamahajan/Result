@@ -1545,6 +1545,66 @@ async function clearRecords(c, st, sub, ass){
     await loadCoverage();
   }catch(e){ alert('Could not clear: ' + e.message); }
 }
+/* ---------- unlock marks (admin + sub-admin) ---------- */
+let REC = null;
+const unlockBase = (c, st, sub, ass) => ({term: ACTIVE_TERM || (CFG && CFG.activeTerm) || '', c, st, sub, ass});
+const unlockWhat = (c, st, sub, ass) => `${cname(c)} · ${sname(st)} · ${subname(sub)} · ${assname(ass)}`;
+async function unlockAll(c, st, sub, ass){
+  const what = unlockWhat(c, st, sub, ass);
+  if(!confirm(`UNLOCK WHOLE ASSESSMENT\n\n${what}\n\nTeachers will be able to edit ALL entered marks of this assessment again. Each row locks again as soon as the teacher saves it.\n\nContinue?`)) return;
+  try{
+    const res = await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {all: true}));
+    alert(`✔ ${res.unlocked} record(s) unlocked for ${what}.`);
+    await loadCoverage();
+  }catch(e){ alert('Could not unlock: ' + e.message); }
+}
+function showRecModal(html){
+  let m = $('recModal');
+  if(!m){
+    m = document.createElement('div'); m.id = 'recModal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto';
+    m.addEventListener('click', e => { if(e.target === m) closeRecords(); });
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `<div class="card" style="max-width:780px;width:100%;margin:auto">${html}</div>`;
+}
+function closeRecords(){ const m = $('recModal'); if(m) m.remove(); REC = null; }
+async function openRecords(c, st, sub, ass){
+  REC = {c, st, sub, ass, entries: {}};
+  const what = unlockWhat(c, st, sub, ass), x = unlockBase(c, st, sub, ass);
+  showRecModal(`<b>${esc(what)}</b><div class="empty">Loading…</div>`);
+  try{
+    const q = `term=${encodeURIComponent(x.term)}&ass=${encodeURIComponent(ass)}&sub=${encodeURIComponent(sub)}&c=${encodeURIComponent(c)}&st=${encodeURIComponent(st)}`;
+    REC.entries = (await api('GET', '/api/sheet?' + q)).entries || {};
+  }catch(e){ showRecModal(`<b>${esc(what)}</b><div class="empty">Could not load: ${esc(e.message)}</div><div style="text-align:right;margin-top:10px"><button class="btn ghost" onclick="closeRecords()">Close</button></div>`); return; }
+  renderRecords();
+}
+function renderRecords(){
+  if(!REC) return;
+  const {c, st, sub, ass, entries} = REC, what = unlockWhat(c, st, sub, ass);
+  let list = window.ALLSTUDENTS || {};
+  list = Array.isArray(list) ? list.map((s, i) => [s.id != null ? s.id : i, s]) : Object.entries(list);
+  const roster = list.filter(([k, s]) => s.classId === c && s.streamId === st && (s.status || 'Active').toLowerCase() === 'active')
+    .sort((p, q) => String(p[1].sectionId).localeCompare(String(q[1].sectionId)) || (p[1].rollNo || 0) - (q[1].rollNo || 0));
+  const rows = roster.map(([k, s]) => {
+    const e = entries[k] || {}, has = e.m != null || e.f;
+    const act = !has ? '<span class="muted">not entered</span>' : (e.u ? '<span class="badge b-open">🔓 Unlocked</span>' : `<button class="btn sm" data-k="${esc(k)}" onclick="unlockOne(this.dataset.k, this)">🔓 Unlock</button>`);
+    return `<tr><td>${esc(s.rollNo)}</td><td>${esc(s.name)}</td><td>${esc(s.admNo)}</td><td>${has ? esc(e.m == null ? '—' : e.m) : ''}</td><td class="muted">${esc(e.by || '')}</td><td>${act}</td></tr>`;
+  }).join('');
+  showRecModal(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(what)}</b><button class="btn ghost sm" onclick="closeRecords()">✕ Close</button></div>
+    <div class="muted" style="font-size:12px;margin:6px 0">Unlock a student's mark so the teacher can correct it. It locks again when the teacher saves.</div>
+    <div class="scroll"><table><thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Marks</th><th>Entered by</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty">No students found.</td></tr>'}</tbody></table></div>`);
+}
+async function unlockOne(k, btn){
+  if(!REC) return;
+  const {c, st, sub, ass} = REC;
+  if(btn){ btn.disabled = true; btn.textContent = 'Unlocking…'; }
+  try{
+    await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {keys: [k]}));
+    REC.entries[k] = Object.assign({}, REC.entries[k], {u: true});
+    renderRecords();
+  }catch(e){ alert('Could not unlock: ' + e.message); if(btn){ btn.disabled = false; btn.textContent = '🔓 Unlock'; } }
+}
 async function loadCoverage(){
   const a = $('cAss').value, f = $('cFilter').value, out = $('covOut');
   out.innerHTML = '<div class="card empty">Loading…</div>'; $('covSummary').innerHTML = '';
@@ -1566,7 +1626,7 @@ async function loadCoverage(){
     (shown.length ? shown.map(r => {
       const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
       return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${esc(assname(r.ass))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🗑 Clear</button>` : ''}</div></td>
+        <td><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${r.filled ? `<button class="btn sm ghost" title="Unlock marks of specific students" onclick="openRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">📋 Records</button><button class="btn sm" title="Unlock all students of this assessment" onclick="unlockAll('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🔓 Unlock all</button>` : ''}${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🗑 Clear</button>` : ''}</div></td>
         <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">⚠ Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
     }).join('') : '<tr><td colspan="8" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
 }
