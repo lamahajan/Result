@@ -397,8 +397,13 @@
     gap: 6px;
   }
   #activeTermBox::before {
-    content: '🗓';
-    font-size: 13px;
+    content: '';
+    width: 15px;
+    height: 15px;
+    flex: none;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E") center / contain no-repeat;
   }
 
   /* User profile in sidebar */
@@ -448,6 +453,55 @@
     border-color: var(--brand-b);
     color: var(--brand-d);
   }
+
+  /* ===== SVG icons (replace emoji) ===== */
+  svg.i {
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.2em;
+  }
+  .hbtn .ic { display: inline-flex; align-items: center; }
+  .hbtn .ic svg.i { width: 17px; height: 17px; vertical-align: 0; }
+  .topbar .t svg.i { width: 20px; height: 20px; color: var(--brand); margin-right: 4px; vertical-align: -0.3em; }
+  .modal h3 svg.i { width: 20px; height: 20px; color: var(--brand); margin-right: 4px; vertical-align: -0.3em; }
+  .acctmenu button svg.i { width: 16px; height: 16px; vertical-align: 0; }
+  .fbtn .cv { display: inline-flex; align-items: center; }
+  .fbtn .cv svg.i { width: 18px; height: 18px; vertical-align: 0; }
+  .card.empty svg.i, .note svg.i { vertical-align: -0.22em; }
+
+  /* ===== Account button (avatar + label + dropdown arrow) ===== */
+  .me button { gap: 8px; position: relative; }
+  .me button .av {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), var(--brand-d));
+    color: #fff;
+    font: 800 11px var(--sans);
+    letter-spacing: 0;
+  }
+  .me button .lbl { display: block; font: inherit; color: inherit; }
+  .me button .chev {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    color: var(--muted);
+    vertical-align: 0;
+    transition: transform 0.18s ease, color 0.15s;
+  }
+  .me button:hover .chev { color: var(--brand-d); }
+  .me button.open { background: var(--brand-s); border-color: var(--brand-b); color: var(--brand-d); }
+  .me button.open .chev { transform: rotate(180deg); color: var(--brand-d); }
 
   /* Content area */
   .content {
@@ -987,14 +1041,29 @@
       color: #fff;
     }
     .me button .lbl { display: none; }
-    .av {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .me button { gap: 0; }
+    .me button .av {
       width: 100%;
       height: 100%;
-      font: 800 13px var(--sans);
+      background: none;
+      color: #fff;
+      font: 800 14px var(--sans);
     }
+    .me button .chev {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 17px;
+      height: 17px;
+      padding: 2px;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--brand);
+      stroke-width: 3;
+      box-shadow: 0 1px 5px rgba(15, 23, 42, 0.35);
+    }
+    .me button:hover .chev, .me button.open .chev { color: var(--brand-d); }
+    .me button.open { background: rgba(255, 255, 255, 0.28); border-color: #fff; color: #fff; }
 
     /* Context Chip Top Bar */
     .topbar {
@@ -1349,19 +1418,20 @@
         <span>Logged in as</span>
         <b id="meName"></b>
       </div>
-      <button id="acctBtn" onclick="toggleAcct(event)" aria-label="Account menu">
-        <span class="lbl">Account</span>
+      <button id="acctBtn" onclick="toggleAcct(event)" aria-label="Account menu" aria-haspopup="menu" aria-expanded="false">
         <span class="av" id="meAv"></span>
+        <span class="lbl">Account</span>
+        <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </button>
     </div>
   </aside>
   <section class="content">
     <div class="topbar">
       <button type="button" class="fbtn" id="fToggle" onclick="toggleFilters()"></button>
-      <span class="t" id="pageTitle">&#128221; Marks Entry</span>
-      <button class="btn ghost hbtn" id="btnRefresh" onclick="poll(true)" aria-label="Refresh"><span class="ic">&#8635;</span><span class="tx"> Refresh</span></button>
-      <button class="btn ghost hbtn" id="btnBulk" onclick="openBulk()" aria-label="Bulk entry"><span class="ic">&#9889;</span><span class="tx"> Bulk Fill</span></button>
-      <button class="btn hbtn" id="btnProg" onclick="toggleProg()" aria-label="Progress"><span class="ic">&#128202;</span><span class="tx"> Progress</span></button>
+      <span class="t" id="pageTitle"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Marks Entry</span>
+      <button class="btn ghost hbtn" id="btnRefresh" onclick="poll(true)" aria-label="Refresh"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/></svg></span><span class="tx"> Refresh</span></button>
+      <button class="btn ghost hbtn" id="btnBulk" onclick="openBulk()" aria-label="Bulk entry"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span><span class="tx"> Bulk Fill</span></button>
+      <button class="btn hbtn" id="btnProg" onclick="toggleProg()" aria-label="Progress"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-3"/></svg></span><span class="tx"> Progress</span></button>
     </div>
     <div class="scrollarea"><main>
       <div id="noAssign" class="card empty hidden">No class or subject has been assigned to you yet. Please contact the admin.</div>
@@ -1375,12 +1445,12 @@
 </div></div>
 
 <div id="acctMenu" class="acctmenu hidden" role="menu">
-  <button role="menuitem" onclick="openPin()">&#128273; Change PIN</button>
-  <button role="menuitem" class="out" onclick="closeAcct();logout()">&#128682; Log out</button>
+  <button role="menuitem" onclick="openPin()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg> Change PIN</button>
+  <button role="menuitem" class="out" onclick="closeAcct();logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Log out</button>
 </div>
 
 <div id="pinModal" class="overlay hidden" onclick="if(event.target===this)closePin()"><div class="modal">
-  <h3>&#128273; Change PIN</h3><p>Choose a new 4-digit PIN. You stay signed in here; other devices will be logged out.</p>
+  <h3><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg> Change PIN</h3><p>Choose a new 4-digit PIN. You stay signed in here; other devices will be logged out.</p>
   <div class="pinf"><label for="pinCur">Current PIN</label><input class="mask pin" type="text" id="pinCur" maxlength="4" inputmode="numeric" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off"></div>
   <div class="pinf"><label for="pinNew">New PIN</label><input class="mask pin" type="text" id="pinNew" maxlength="4" inputmode="numeric" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off"></div>
   <div class="pinf"><label for="pinNew2">Confirm new PIN</label><input class="mask pin" type="text" id="pinNew2" maxlength="4" inputmode="numeric" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off"></div>
@@ -1390,7 +1460,7 @@
 </div></div>
 
 <div id="bulkModal" class="overlay hidden" onclick="if(event.target===this)closeBulk()"><div class="modal">
-  <h3>&#9889; Bulk Entry</h3><p>This value will be filled in for the students in the list. You still need to press <b>Save marks</b> afterwards.</p>
+  <h3><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg> Bulk Entry</h3><p>This value will be filled in for the students in the list. You still need to press <b>Save marks</b> afterwards.</p>
   <input type="text" id="bulkVal" placeholder="Marks / AB" autocomplete="off" onkeydown="if(event.key==='Enter')applyBulk()">
   <div style="margin:12px 0 6px">
     <label class="opt"><input type="radio" name="bulkMode" value="empty" checked> Only students with empty marks</label>
@@ -1400,6 +1470,7 @@
 </div></div>
 
 <script>
+const ICON = {edit:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',refresh:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/></svg>',zap:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',chart:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-3"/></svg>',key:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg>',logout:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>',back:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',chevron:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',check:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',x:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',lock:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',checkc:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',dot:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor;stroke:none;width:.7em;height:.7em"><circle cx="12" cy="12" r="8"/></svg>'};
 const DEFAULT_API = "https://result.result-300.workers.dev";
 const POLL_MS = 20000;
 const API = DEFAULT_API;
@@ -1458,12 +1529,12 @@ function logout(message){
   $('sheet').innerHTML = ''; $('lockMsg').textContent = typeof message === 'string' ? message : '';
 }
 /* ---------- account menu / change PIN ---------- */
-function closeAcct(){ $('acctMenu').classList.add('hidden'); }
+function closeAcct(){ $('acctMenu').classList.add('hidden'); const b = $('acctBtn'); if(b){ b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } }
 function toggleAcct(e){
   e.stopPropagation();
   const m = $('acctMenu'); if(!m.classList.contains('hidden')){ closeAcct(); return; }
-  m.classList.remove('hidden');
-  const r = $('acctBtn').getBoundingClientRect(), w = 190, h = m.offsetHeight || 96;
+  m.classList.remove('hidden'); $('acctBtn').classList.add('open'); $('acctBtn').setAttribute('aria-expanded', 'true');
+  const r = $('acctBtn').getBoundingClientRect(), w = m.offsetWidth || 200, h = m.offsetHeight || 96;
   m.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px';
   if(r.top > h + 16){ m.style.top = ''; m.style.bottom = (window.innerHeight - r.top + 6) + 'px'; }
   else { m.style.bottom = ''; m.style.top = (r.bottom + 6) + 'px'; }
@@ -1489,7 +1560,7 @@ async function savePin(){
   try{
     const r = await api('POST', '/api/change-pin', {current: cur, pin: nw});
     TOKEN = r.token; sessionStorage.setItem('eca_token', TOKEN);
-    msg.textContent = '✔ PIN changed. Use the new PIN next time you log in.'; msg.className = 'pinmsg ok';
+    msg.innerHTML = ICON.check + ' PIN changed. Use the new PIN next time you log in.'; msg.className = 'pinmsg ok';
     setTimeout(closePin, 1400);
   }catch(e){ bad(e.message); btn.disabled = false; }
 }
@@ -1500,8 +1571,8 @@ function showTab(t){
   $('paneEntry').classList.toggle('hidden', t !== 'entry' || !hasAssign()); $('paneProg').classList.toggle('hidden', t !== 'prog');
   $('filters').classList.toggle('hidden', t !== 'entry' || !hasAssign());
   $('fToggle').classList.toggle('hidden', t !== 'entry' || !hasAssign());
-  $('pageTitle').textContent = t === 'entry' ? '📝 Marks Entry' : '📊 My Progress';
-  $('btnProg').innerHTML = t === 'entry' ? '<span class="ic">📊</span><span class="tx"> Progress</span>' : '<span class="ic">←</span><span class="tx"> Marks Entry</span>';
+  $('pageTitle').innerHTML = t === 'entry' ? ICON.edit + ' Marks Entry' : ICON.chart + ' My Progress';
+  $('btnProg').innerHTML = t === 'entry' ? '<span class="ic">' + ICON.chart + '</span><span class="tx"> Progress</span>' : '<span class="ic">' + ICON.back + '</span><span class="tx"> Marks Entry</span>';
   $('btnProg').classList.toggle('back', t === 'prog');
   ['btnRefresh', 'btnBulk'].forEach(i => $(i).classList.toggle('hidden', t !== 'entry'));
   if(t === 'prog' && CFG) loadProgress();
@@ -1522,14 +1593,35 @@ async function start(){
   $('meName').textContent = ME.name; $('meAv').textContent = initials(ME.name);
   const sc = CFG.school || {};
   $('schoolName').textContent = sc.name || 'eResult';
-  const yr = v => (String(v || '').match(/\d{4}/) || [''])[0], f = yr(sc.sessionFrom), t = yr(sc.sessionUpto);
-  $('schoolSub').textContent = f ? 'Session ' + f + (t && t !== f ? '–' + t.slice(2) : '') : '';
+  $('schoolSub').textContent = sessionLabel(sc);
   const tb = $('activeTermBox');
   tb.textContent = CFG.activeTerm ? ((CFG.terms[CFG.activeTerm] || {}).printName || (CFG.terms[CFG.activeTerm] || {}).name || CFG.activeTerm) : 'Not set by admin yet';
   $('noAssign').classList.toggle('hidden', hasAssign());
   fillClasses(); fillTermAss(); showTab('entry');
   updateCtx();
   if(isMobile() && hasAssign()) toggleFilters(false);   // phones: start with the class / subject sheet open
+}
+/* Session label: reads the school config, but if the stored session is missing / unreadable / already over,
+   it falls back to the current academic year (April - March) so the header never shows an old session. */
+function sessionLabel(sc){
+  sc = sc || {};
+  const toYear = v => {
+    if(v === null || v === undefined || v === '') return 0;
+    if(typeof v === 'number') return v > 20000 && v < 80000 ? new Date(Math.round((v - 25569) * 864e5)).getUTCFullYear() : (v >= 1990 && v <= 2100 ? v : 0);
+    const s = String(v).trim();
+    if(/^\d{4}-\d{2}-\d{2}T/.test(s)){ const d = new Date(s); if(!isNaN(d)) return d.getFullYear(); }
+    const m = s.match(/(?:^|\D)((?:19|20)\d{2})(?!\d)/);
+    return m ? +m[1] : 0;
+  };
+  let f = toYear(sc.sessionFrom), t = toYear(sc.sessionUpto);
+  if(f && !t){   // single value like "2026-27" / "2026-2027"
+    const m = String(sc.sessionFrom).match(/((?:19|20)\d{2})\s*[-–\/]\s*((?:19|20)?\d{2})(?!\d)/);
+    if(m) t = m[2].length === 2 ? +(m[1].slice(0, 2) + m[2]) : +m[2];
+  }
+  if(f && t && t < f){ const x = f; f = t; t = x; }
+  const now = new Date(), cy = now.getFullYear(), afterMar = now.getMonth() >= 3, e = t || f;
+  if(!f || e < cy || (t > f && e === cy && afterMar)){ f = afterMar ? cy : cy - 1; t = f + 1; }
+  return 'Session ' + f + (t && t !== f ? '–' + String(t).slice(2) : '');
 }
 function initials(n){ const p = String(n || '').trim().split(/\s+/).filter(Boolean); return p.length ? (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() : '?'; }
 
@@ -1623,7 +1715,7 @@ function rowState(k){
   tr.classList.toggle('r-lock', !!S.lock[k]);
 }
 function renderSheet(){
-  if(!S.roster.length){ $('sheet').innerHTML = '<div class="card empty">✅ Marks for all ' + S.hidden + ' students are already entered for this subject.</div>'; hdr(); updateCtx(); return; }
+  if(!S.roster.length){ $('sheet').innerHTML = '<div class="card empty">' + ICON.checkc + ' Marks for all ' + S.hidden + ' students are already entered for this subject.</div>'; hdr(); updateCtx(); return; }
   S.view = S.view || 'all';
   const rows = S.roster.map(([k, s]) => {
     const v = k in S.dirty ? S.dirty[k] : S.base[k], g = gradeOf(v, S.conf.maxMark, S.conf.gradeId);
@@ -1638,7 +1730,7 @@ function renderSheet(){
       <thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Father</th><th>Marks (or AB)</th><th>Grade</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
     <div class="viewempty hidden" id="viewEmpty">No students in this view.</div>
-    ${ME.canEdit ? '' : '<div class="note lockmsg">🔒 Saved marks are locked; contact the admin to change them.</div>'}
+    ${ME.canEdit ? '' : '<div class="note lockmsg">${ICON.lock} Saved marks are locked; contact the admin to change them.</div>'}
     <div class="note">Type marks and press Enter to jump to the next student. Type AB for absent. Only your changed cells are saved.</div>
     <div class="savebar"><div class="sv-l"><span class="cnt" id="saveCount"></span><span class="status" id="saveStatus"></span></div><button class="btn" id="saveBtn" onclick="save()">Save marks</button></div>`;
   updateFilled(); applyView(); updateSaveState();
@@ -1672,8 +1764,8 @@ function updateCtx(){
   const ready = t('selClass') && t('selSubject') && t('selAss');
   b.classList.toggle('empty', !ready);
   b.innerHTML = ready
-    ? `<span class="cx"><span class="cx1">${esc(l1)}</span><span class="cx2">${esc(l2)}</span></span><span class="cv">▾</span>`
-    : `<span class="cx"><span class="cx1">${esc(l1 || 'Choose class & subject')}</span><span class="cx2">${l1 ? 'Tap to pick subject & assessment' : 'Tap to select'}</span></span><span class="cv">▾</span>`;
+    ? `<span class="cx"><span class="cx1">${esc(l1)}</span><span class="cx2">${esc(l2)}</span></span><span class="cv">${ICON.chevron}</span>`
+    : `<span class="cx"><span class="cx1">${esc(l1 || 'Choose class & subject')}</span><span class="cx2">${l1 ? 'Tap to pick subject & assessment' : 'Tap to select'}</span></span><span class="cv">${ICON.chevron}</span>`;
 }
 function setAB(btn){
   const i = btn.parentNode.querySelector('input.m'); if(!i || i.readOnly) return;
@@ -1704,7 +1796,7 @@ function updateFilled(){
   const sum = $('sumTxt'); if(sum) sum.innerHTML = 'Entered ' + n + ' <span>/ ' + tot + '</span>';
   const f = $('sumFill'); if(f) f.style.width = (tot ? Math.round(n / tot * 100) : 0) + '%';
   set('sumUns', uns ? uns + ' unsaved' : ''); set('cAll', tot); set('cPend', tot - n); set('cDone', n);
-  const c = $('saveCount'); if(c){ c.textContent = uns ? '● ' + uns + ' unsaved' : (n === tot ? '✔ All ' + tot + ' entered' : n + ' of ' + tot + ' entered'); c.classList.toggle('warn', !!uns); }
+  const c = $('saveCount'); if(c){ c.innerHTML = uns ? ICON.dot + ' ' + uns + ' unsaved' : (n === tot ? ICON.check + ' All ' + tot + ' entered' : n + ' of ' + tot + ' entered'); c.classList.toggle('warn', !!uns); }
 }
 
 function parseCell(raw){
@@ -1768,10 +1860,10 @@ async function save(){
     await api('PATCH', '/api/sheet', {term: x.t, ass: x.a, sub: x.sub, c: x.c, st: x.st, changes});
     keys.forEach(k => { mine.unl[k] = false; mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : ME.name.slice(0, 20); const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
     document.querySelectorAll('input.m.dirty').forEach(i => { if(!(i.dataset.k in mine.dirty)) i.classList.remove('dirty'); });
-    st.textContent = '✔ Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
+    st.innerHTML = ICON.check + ' Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
     if(!ME.canEdit) keys.forEach(k => { if(mine.base[k] != null){ mine.lock[k] = true; const i = document.querySelector(`input.m[data-k="${k}"]`); if(i){ i.readOnly = true; i.classList.add('locked'); i.classList.remove('dirty'); } } });
     keys.forEach(rowState); updateFilled(); applyView();
-  }catch(e){ if(TOKEN){ st.textContent = '✖ Not saved: ' + e.message + ' (your entries are still on screen)'; st.className = 'status err'; } }
+  }catch(e){ if(TOKEN){ st.innerHTML = ICON.x + ' Not saved: ' + esc(e.message) + ' (your entries are still on screen)'; st.className = 'status err'; } }
   saving = false; btn.disabled = false; updateSaveState();
 }
 
@@ -1820,7 +1912,7 @@ async function loadProgress(){
         const done = r.optional ? r.filled > 0 : r.filled >= r.total;
         const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
         return `<tr><td>${esc((CFG.assessments[r.ass] || {}).name || r.ass)}</td><td>${esc((CFG.subjects[r.sub] || {}).name || r.sub)}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-          <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${done ? '✔ Done' : 'Pending'}</td></tr>`;
+          <td><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div></td><td class="by">${done ? ICON.check + ' Done' : 'Pending'}</td></tr>`;
       }).join('');
       return `<div class="card" style="padding:0;margin-bottom:10px"><div style="padding:10px 14px;font-weight:800">${esc(className(c))} · ${esc((CFG.streams[st] || {}).name || st)}</div>
         <div class="scroll"><table><thead><tr><th>Assessment</th><th>Subject</th><th>Filled</th><th></th><th>Status</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>`;
