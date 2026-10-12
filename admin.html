@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#7c3aed">
+<meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="admin-manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,6 +19,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
     --bg: #f8fafc;
     --card: #ffffff;
     --card-subtle: #f8fafc;
@@ -62,7 +66,12 @@
   }
 
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html, body {
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
   body {
     margin: 0;
     font-family: var(--sans);
@@ -976,35 +985,307 @@
     animation: spin 0.7s linear infinite;
   }
 
-  @media (max-width: 700px) {
-    header { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
-    .hright { width: 100%; justify-content: space-between; }
-    .termbar .tl { display: none; }
-    .uf-grid { grid-template-columns: 1fr; }
-    .lock { margin: 4vh auto; width: calc(100% - 24px); padding: 32px 20px; }
-    table.rt { display: block; border-spacing: 0; font-size: 14px; }
-    table.rt thead { display: none; }
-    table.rt tbody { display: block; }
+  /* Toolbars & layout helpers */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .toolbar-title {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .h-user-btns {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .user-meta {
+    display: inline-block;
+  }
+  .badge-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .cov-prog-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cov-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pend-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pend-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Records Modal */
+  #recModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #recModal .card {
+    max-width: 780px;
+    width: 100%;
+    margin: auto;
+    box-shadow: var(--sh-lg);
+  }
+
+  /* ========================================================
+     MOBILE & TABLET RESPONSIVE DESIGN (<= 768px)
+     ======================================================== */
+  @media (max-width: 768px) {
+    /* Header: Two clean rows */
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 8px;
+      padding: max(10px, var(--sat)) 12px 10px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.25);
+    }
+    .brand {
+      min-width: 0;
+      gap: 10px;
+    }
+    .brand .logo {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 15px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    header .sub {
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hright {
+      display: contents;
+    }
+    .h-user-btns {
+      grid-row: 1;
+      grid-column: 2;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .h-user-btns button {
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      min-height: 36px;
+      border-radius: 9px;
+      gap: 5px;
+    }
+    .h-user-btns button svg.i {
+      width: 14px;
+      height: 14px;
+    }
+    .termbar {
+      grid-row: 2;
+      grid-column: 1 / -1;
+      width: 100%;
+      display: flex;
+      gap: 6px;
+      padding: 4px 6px 4px 10px;
+      border-radius: 10px;
+    }
+    .termbar .tl {
+      display: inline-flex;
+      font-size: 11.5px;
+      white-space: nowrap;
+    }
+    .termbar select {
+      flex: 1;
+      min-width: 0;
+      max-width: none;
+      font-size: 13.5px;
+      padding: 6px 26px 6px 8px;
+      min-height: 34px;
+    }
+    .termbar button {
+      padding: 6px 14px;
+      min-height: 34px;
+      font-size: 12.5px;
+      flex-shrink: 0;
+    }
+    .acctmenu {
+      max-width: calc(100vw - 16px);
+      right: 8px !important;
+    }
+
+    /* Swipeable Tabs with Touch Momentum */
+    .tabs {
+      display: flex;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 4px;
+      gap: 4px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      background: #e2e8f0;
+    }
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .tab {
+      flex: 1 1 0;
+      min-width: fit-content;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 9px;
+      justify-content: center;
+      white-space: nowrap;
+      min-height: 42px;
+      gap: 6px;
+    }
+    .tab svg.i {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* Main Container & Cards */
+    main {
+      padding: 12px 10px calc(24px + var(--sab));
+    }
+    .card {
+      padding: 15px 12px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+    }
+
+    /* Login Screen */
+    .lock {
+      margin: 4vh auto;
+      width: calc(100% - 24px);
+      padding: 28px 18px;
+      border-radius: 20px;
+    }
+    .lock input {
+      font-size: 16px !important;
+      min-height: 48px;
+      padding: 12px 14px;
+    }
+    .lock button {
+      min-height: 48px;
+      font-size: 15px;
+    }
+    .pinboxes i {
+      height: 52px;
+      font-size: 22px;
+      border-radius: 12px;
+    }
+
+    /* Action Toolbar (Teacher Accounts Header) */
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .toolbar-title {
+      font-size: 15.5px;
+    }
+    .toolbar-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    .toolbar-actions .btn {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      justify-content: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toolbar-actions .primary-action {
+      grid-column: 1 / -1;
+      font-size: 13.5px;
+      min-height: 42px;
+    }
+
+    /* Responsive Table Cards (table.rt) */
+    table.rt {
+      display: block;
+      border-spacing: 0;
+      font-size: 13.5px;
+    }
+    table.rt thead {
+      display: none;
+    }
+    table.rt tbody {
+      display: block;
+    }
     table.rt tr {
       display: block;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 6px 14px;
-      margin: 0 0 10px;
+      padding: 10px 12px;
+      margin: 0 0 12px;
       box-shadow: var(--sh);
     }
     table.rt td {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 9px 0;
+      gap: 10px;
+      padding: 8px 0;
       border: none;
       text-align: right;
-    }
-    table.rt td:not(:last-child) {
       border-bottom: 1px dashed var(--border);
+    }
+    table.rt td:last-child {
+      border-bottom: none;
     }
     table.rt td[data-label]::before {
       content: attr(data-label);
@@ -1014,6 +1295,326 @@
       letter-spacing: 0.05em;
       color: var(--muted);
       text-align: left;
+      flex-shrink: 0;
+      max-width: 42%;
+    }
+    table.rt td.empty {
+      display: block !important;
+      text-align: center !important;
+      padding: 24px 12px !important;
+      color: var(--muted);
+      border: none !important;
+    }
+    table.rt td.empty::before {
+      display: none !important;
+    }
+
+    /* Actions cell inside card */
+    table.rt td.td-actions-cell,
+    table.rt td[data-label="Actions"],
+    table.rt td[data-label="Action"] {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 6px !important;
+      padding-top: 10px !important;
+      border-bottom: none !important;
+    }
+    table.rt td.td-actions-cell::before,
+    table.rt td[data-label="Actions"]::before {
+      display: none !important;
+    }
+    .td-actions {
+      display: flex !important;
+      width: 100% !important;
+      gap: 8px !important;
+      flex-wrap: wrap !important;
+    }
+    .td-actions .btn {
+      flex: 1 1 calc(33.333% - 6px) !important;
+      min-width: 75px !important;
+      min-height: 40px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      justify-content: center !important;
+      padding: 8px 10px !important;
+    }
+
+    /* User metadata inside card */
+    .user-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+    .user-uname {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent2);
+      background: var(--accent-light);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: flex-end;
+      max-width: 65%;
+    }
+
+    /* Coverage table Progress cell */
+    table.rt td[data-label="Progress"] {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 8px !important;
+    }
+    table.rt td[data-label="Progress"]::before {
+      align-self: flex-start !important;
+    }
+    .cov-prog-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      width: 100%;
+    }
+    .cov-prog-wrap .bar {
+      width: 100% !important;
+      min-width: 100% !important;
+      height: 10px !important;
+    }
+    .cov-btns {
+      display: flex;
+      width: 100%;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .cov-btns .btn {
+      flex: 1 1 calc(50% - 4px);
+      min-height: 38px;
+      justify-content: center;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 10px;
+    }
+    .cov-owners, .cov-who {
+      word-break: break-word;
+      max-width: 60%;
+    }
+
+    /* Coverage Filter Row */
+    #paneCov .card .row {
+      flex-direction: column;
+      gap: 12px;
+    }
+    #paneCov .card .field {
+      width: 100%;
+      min-width: 100%;
+      flex: none;
+    }
+    #paneCov .card .field button.btn {
+      width: 100%;
+      min-height: 44px;
+      font-size: 14.5px;
+      font-weight: 800;
+      justify-content: center;
+    }
+    #paneCov .card .field:has(button) label {
+      display: none;
+    }
+
+    /* Pending Requests */
+    .pend-card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pend-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .pend-actions .btn {
+      flex: 1 1 calc(33.333% - 6px);
+      min-height: 40px;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 10px;
+    }
+
+    /* User Editor Drawer/Card */
+    #editor {
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    .uf-head {
+      padding: 14px 14px;
+      gap: 10px;
+    }
+    .uf-av {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+    .uf-title b {
+      font-size: 15px;
+    }
+    .uf-sub {
+      font-size: 11.5px;
+    }
+    .uf-x {
+      width: 36px;
+      height: 36px;
+    }
+    .uf-body {
+      padding: 16px 14px;
+      gap: 18px;
+    }
+    .uf-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .uf-pin {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+    .uf-pin input {
+      max-width: 100% !important;
+      font-size: 20px !important;
+    }
+    .uf-eye {
+      min-height: 44px;
+      padding: 10px 14px;
+    }
+    .uf-chip {
+      grid-column: 1 / -1;
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      min-height: 42px;
+      font-size: 13px;
+    }
+    .uf-tg {
+      padding: 12px 12px;
+      border-radius: 12px;
+      min-height: 48px;
+    }
+    .uf-tg .t b {
+      font-size: 13px;
+    }
+    .uf-tg input[type=checkbox] {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    details.grp > summary {
+      padding: 10px 12px;
+      font-size: 13.5px;
+    }
+    details.grp > summary .btn {
+      min-height: 32px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    details.grp .subs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 10px;
+    }
+    details.grp label.chk {
+      padding: 8px 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 38px;
+    }
+    details.grp label.chk input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .uf-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 14px 14px;
+    }
+    .uf-bar .btn {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .uf-bar .sp {
+      display: none;
+    }
+    .uf-bar .status {
+      text-align: center;
+    }
+
+    /* Inputs - Prevent iOS Safari Auto-Zoom */
+    select, input.txt, input[type="text"], input[type="password"], textarea.txt, textarea {
+      font-size: 16px !important;
+      min-height: 44px;
+    }
+
+    /* Modals on Mobile */
+    .pin-md {
+      padding: 22px 18px 18px;
+      width: min(400px, 94vw);
+      border-radius: 20px;
+    }
+    .pin-md input.pin {
+      height: 50px;
+      font-size: 22px !important;
+    }
+    .pin-md .acts {
+      flex-direction: column-reverse;
+      gap: 8px;
+      width: 100%;
+    }
+    .pin-md .acts .btn {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    #recModal {
+      padding: 8px;
+      align-items: center;
+    }
+    #recModal .card {
+      border-radius: 18px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 12px;
+    }
+    #recModal .scroll {
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Extra Small Devices (<= 400px) */
+  @media (max-width: 400px) {
+    .termbar .tl .term-text {
+      display: none;
+    }
+    .h-user-btns button span {
+      display: none;
+    }
+    .toolbar-actions {
+      grid-template-columns: 1fr;
     }
   }
   /* Logo: sirf ring dikhe, bahar ka square/box nahi */
@@ -1053,13 +1654,15 @@
     </div>
     <div class="hright">
       <div class="termbar" id="termCard" title="Teachers can only enter marks for this active term.">
-        <span class="tl"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Active Feeding Term</span>
+        <span class="tl"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> <span class="term-text">Active Feeding Term</span></span>
         <select id="termSel"></select>
         <button type="button" onclick="saveActiveTerm()">Save</button>
         <span class="status" id="termStatus"></span>
       </div>
-      <button id="acctBtn" class="hidden" onclick="toggleAcct(event)" aria-label="Account" aria-haspopup="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Account <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-      <button id="logoutBtn" onclick="logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Log out</button>
+      <div class="h-user-btns">
+        <button id="acctBtn" class="hidden" onclick="toggleAcct(event)" aria-label="Account" aria-haspopup="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> <span>Account</span> <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button id="logoutBtn" onclick="logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> <span>Log out</span></button>
+      </div>
     </div>
   </header>
 
@@ -1092,14 +1695,14 @@
       <div class="card" id="bulkCard" style="display:none"></div>
       <div class="card" id="editor" style="display:none"></div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap">
-          <b style="font-size:16px;display:inline-flex;align-items:center;gap:6px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Teacher Accounts</b>
-          <span style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="toolbar user-toolbar">
+          <b class="toolbar-title"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Teacher Accounts</b>
+          <div class="toolbar-actions">
+            <button class="btn sm primary-action" onclick="newUser()">&#65291; New User</button>
+            <button class="btn ghost sm" onclick="openBulkUsers()">&#65291; Bulk Add</button>
             <button class="btn ghost sm" onclick="exportUsers(false)">&#11015; Download CSV</button>
             <button class="btn ghost sm" onclick="exportUsers(true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Copy for WhatsApp</button>
-            <button class="btn ghost sm" onclick="openBulkUsers()">&#65291; Bulk Add</button>
-            <button class="btn sm" onclick="newUser()">&#65291; New User</button>
-          </span>
+          </div>
         </div>
         <div class="scroll"><table>
           <thead><tr><th>Name</th><th>Username</th><th>Status &amp; Roles</th><th>Assigned Subjects</th><th>Actions</th></tr></thead>
@@ -1290,10 +1893,10 @@ async function refreshUsers(){
       : `<button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Edit</button>
         <button class="btn sm ghost" onclick="toggleActive('${esc(u.uid)}')">${u.active ? 'Disable' : 'Enable'}</button>
         <button class="btn sm danger" onclick="delUser('${esc(u.uid)}')">Delete</button>`;
-    return `<tr><td><b>${esc(u.name)}</b>${u.mobile ? `<div class="muted">${esc(u.mobile)}</div>` : ''}</td><td>${esc(u.username)}</td>
-      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subadmin ? '<span class="badge b-open">' + ICON.star + ' Sub-admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? ICON.pencil + ' Can edit' : ICON.lock + ' Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
+    return `<tr><td><div class="user-meta"><b>${esc(u.name)}</b>${u.mobile ? `<div class="muted">${esc(u.mobile)}</div>` : ''}</div></td><td><span class="user-uname">${esc(u.username)}</span></td>
+      <td><div class="badge-list"><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subadmin ? '<span class="badge b-open">' + ICON.star + ' Sub-admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? ICON.pencil + ' Can edit' : ICON.lock + ' Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</div></td>
       <td>${s.subs ? `${s.subs} subject(s) in ${s.classes} class(es)` : '<span class="muted">nothing assigned</span>'}</td>
-      <td style="white-space:nowrap">${actions}</td></tr>`;
+      <td class="td-actions-cell"><div class="td-actions">${actions}</div></td></tr>`;
   }).join('');
   $('userRows').innerHTML = rows || '<tr><td colspan="5" class="empty">No users yet. Click "New user".</td></tr>';
   const pendN = USERS.filter(u => u.pending).length, pc = $('pendCount');
@@ -1312,9 +1915,9 @@ function renderPending(){
   out.innerHTML = pend.map(u => {
     const reqList = summarizeRequested(u.requested);
     return `<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div class="pend-card-header">
         <div><b style="font-size:15px">${esc(u.name)}</b><div class="muted" style="margin-top:2px">Username: <b>${esc(u.username)}</b>${u.mobile ? ' · ' + ICON.phone + ' ' + esc(u.mobile) : ''}</div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="pend-actions">
           <button class="btn sm" onclick="approvePending('${esc(u.uid)}')">${ICON.check} Approve${reqList.length ? ' as requested' : ''}</button>
           <button class="btn sm ghost" onclick="editThenApprove('${esc(u.uid)}')">Edit first</button>
           <button class="btn sm danger" onclick="rejectPending('${esc(u.uid)}')">${ICON.x} Reject</button>
@@ -1602,7 +2205,6 @@ function showRecModal(html){
   let m = $('recModal');
   if(!m){
     m = document.createElement('div'); m.id = 'recModal';
-    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto';
     m.addEventListener('click', e => { if(e.target === m) closeRecords(); });
     document.body.appendChild(m);
   }
@@ -1633,7 +2235,7 @@ function renderRecords(){
   }).join('');
   showRecModal(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(what)}</b><button class="btn ghost sm" onclick="closeRecords()">${ICON.x} Close</button></div>
     <div class="muted" style="font-size:12px;margin:6px 0">Unlock a student's mark so the teacher can correct it. It locks again when the teacher saves.</div>
-    <div class="scroll"><table><thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Marks</th><th>Entered by</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty">No students found.</td></tr>'}</tbody></table></div>`);
+    <div class="scroll"><table><thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Marks</th><th>Entered by</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty">No students found.</td></tr>'}</tbody></table></div>`);
 }
 async function unlockOne(k, btn){
   if(!REC) return;
@@ -1666,8 +2268,8 @@ async function loadCoverage(){
     (shown.length ? shown.map(r => {
       const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
       return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${esc(assname(r.ass))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${r.filled ? `<button class="btn sm ghost" title="Unlock marks of specific students" onclick="openRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.clip} Records</button><button class="btn sm" title="Unlock all students of this assessment" onclick="unlockAll('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.unlock} Unlock all</button>` : ''}${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.trash} Clear</button>` : ''}</div></td>
-        <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">' + ICON.alert + ' Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
+        <td><div class="cov-prog-wrap"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${r.filled ? `<div class="cov-btns"><button class="btn sm ghost" title="Unlock marks of specific students" onclick="openRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.clip} Records</button><button class="btn sm" title="Unlock all students of this assessment" onclick="unlockAll('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.unlock} Unlock all</button>${!SUB ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.trash} Clear</button>` : ''}</div>` : ''}</div></td>
+        <td>${r.owners.length ? `<div class="cov-owners">${esc(r.owners.join(', '))}</div>` : '<span class="warn">' + ICON.alert + ' Unassigned</span>'}</td><td class="muted"><div class="cov-who">${esc((r.who || []).join(', '))}</div></td></tr>`;
     }).join('') : '<tr><td colspan="8" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
 }
 
