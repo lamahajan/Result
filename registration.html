@@ -167,6 +167,22 @@
     gap: 8px;
     margin-bottom: 10px;
   }
+  /* ===== SVG icons (replace emoji) ===== */
+  svg.i {
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.2em;
+  }
+  .done .big svg.i { width: 56px; height: 56px; color: var(--green); stroke-width: 1.8; vertical-align: 0; }
+  .pickrow button { display: inline-flex; align-items: center; justify-content: center; }
+  .pickrow button svg.i { width: 15px; height: 15px; vertical-align: 0; stroke-width: 2.5; }
+
   .pickrow {
     display: flex;
     gap: 8px;
@@ -357,8 +373,8 @@
 
   <div class="field">
     <label>4-digit Login PIN</label>
-    <input type="text" id="pin" value="1234" maxlength="4" inputmode="numeric" autocomplete="off">
-    <div class="hint">You will use this PIN to log in. Default is 1234 (you can change it now or later).</div>
+    <input type="text" id="pin" value="" placeholder="Enter 4-digit PIN" maxlength="4" inputmode="numeric" autocomplete="off">
+    <div class="hint">You will use this PIN to log in. Choose any 4 digits (you can change it later).</div>
   </div>
 
   <div class="field">
@@ -378,7 +394,7 @@
 </div>
 
 <div class="lock done" id="doneBox">
-  <div class="big">&#9989;</div>
+  <div class="big"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
   <h2>Request Sent!</h2>
   <p class="sub" style="margin-bottom:6px">Your assigned username is:</p>
   <div class="user-box">
@@ -436,7 +452,7 @@ function renderPicks(){
   const rows = [];
   for(const c in PICKED) for(const st in PICKED[c]) for(const sub in PICKED[c][st]){
     const label = ((META.classes[c]||{}).name || c) + ' · ' + ((META.streams[st]||{}).name || st) + ' · ' + ((META.subjects[sub]||{}).name || sub);
-    rows.push('<div class="pickrow">' + label.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '<button type="button" onclick="removePick(\'' + c + '\',\'' + st + '\',\'' + sub + '\')">✕</button></div>');
+    rows.push('<div class="pickrow">' + label.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '<button type="button" onclick="removePick(\'' + c + '\',\'' + st + '\',\'' + sub + '\')" aria-label="Remove"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>');
   }
   $('picks').innerHTML = rows.length ? rows.join('') : '<div class="empty-note" id="picksEmpty">Choose class, stream &amp; subject below, then tap <b>+ Add</b> (repeat for each subject). Optional, but helps the admin approve faster.</div>';
 }
