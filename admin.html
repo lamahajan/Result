@@ -139,6 +139,40 @@
     background: rgba(255, 255, 255, 0.22);
     transform: translateY(-1px);
   }
+  /* ===== SVG icons (replace emoji) ===== */
+  svg.i {
+    width: 1.15em;
+    height: 1.15em;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.2em;
+  }
+  header button svg.i { width: 16px; height: 16px; vertical-align: 0; }
+  header #acctBtn .chev { width: 14px; height: 14px; transition: transform 0.18s ease; }
+  header #acctBtn.open { background: rgba(255, 255, 255, 0.24); }
+  header #acctBtn.open .chev { transform: rotate(180deg); }
+  .termbar .tl { display: inline-flex; align-items: center; gap: 6px; }
+  .termbar .tl svg.i { width: 15px; height: 15px; vertical-align: 0; }
+  .tab svg.i { width: 16px; height: 16px; vertical-align: 0; }
+  .btn svg.i, .badge svg.i { width: 1.05em; height: 1.05em; vertical-align: -0.16em; }
+  .btn svg.i { vertical-align: 0; }
+  .acctmenu button svg.i { width: 16px; height: 16px; vertical-align: 0; }
+  .modal h3 svg.i { width: 20px; height: 20px; color: var(--accent, #4f46e5); margin-right: 4px; vertical-align: -0.3em; }
+  .uf-in .ic { display: inline-flex; }
+  .uf-in .ic svg.i { width: 16px; height: 16px; vertical-align: 0; }
+  .uf-eye { display: inline-flex; align-items: center; justify-content: center; }
+  .uf-eye svg.i { width: 18px; height: 18px; vertical-align: 0; }
+  .uf-x { display: inline-flex; align-items: center; justify-content: center; }
+  .uf-x svg.i { width: 18px; height: 18px; vertical-align: 0; }
+  .uf-warn svg.i { width: 15px; height: 15px; vertical-align: -0.22em; margin-right: 2px; }
+  .status svg.i { vertical-align: -0.2em; }
+  .warn svg.i { width: 14px; height: 14px; vertical-align: -0.2em; }
+  #modeLink svg.i { width: 14px; height: 14px; vertical-align: -0.15em; }
+
   .hright {
     display: flex;
     gap: 10px;
@@ -1019,23 +1053,23 @@
     </div>
     <div class="hright">
       <div class="termbar" id="termCard" title="Teachers can only enter marks for this active term.">
-        <span class="tl">&#128197; Active Feeding Term</span>
+        <span class="tl"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Active Feeding Term</span>
         <select id="termSel"></select>
         <button type="button" onclick="saveActiveTerm()">Save</button>
         <span class="status" id="termStatus"></span>
       </div>
-      <button id="acctBtn" class="hidden" onclick="toggleAcct(event)" aria-label="Account">&#128100; Account &#9662;</button>
-      <button id="logoutBtn" onclick="logout()">&#128682; Log out</button>
+      <button id="acctBtn" class="hidden" onclick="toggleAcct(event)" aria-label="Account" aria-haspopup="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Account <svg class="i chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button id="logoutBtn" onclick="logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Log out</button>
     </div>
   </header>
 
   <div id="acctMenu" class="acctmenu hidden" role="menu">
-    <button role="menuitem" onclick="openPin()">&#128273; Change PIN</button>
-    <button role="menuitem" class="out" onclick="closeAcct();logout()">&#128682; Log out</button>
+    <button role="menuitem" onclick="openPin()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg> Change PIN</button>
+    <button role="menuitem" class="out" onclick="closeAcct();logout()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Log out</button>
   </div>
 
   <div id="pinModal" class="pin-ov hidden" onclick="if(event.target===this)closePin()"><div class="pin-md">
-    <h3>&#128273; Change PIN</h3>
+    <h3><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg> Change PIN</h3>
     <p>Choose a new 4-digit PIN (not 1234). Other devices will be logged out; you stay signed in here.</p>
     <div class="pinf"><label for="pinCur">Current PIN</label><input class="mask pin" type="text" id="pinCur" maxlength="4" inputmode="numeric" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off"></div>
     <div class="pinf"><label for="pinNew">New PIN</label><input class="mask pin" type="text" id="pinNew" maxlength="4" inputmode="numeric" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off"></div>
@@ -1047,9 +1081,9 @@
 
   <main>
     <div class="tabs">
-      <div class="tab on" id="tabUsers" onclick="showTab('users')">&#128101; Users &amp; Staff</div>
-      <div class="tab" id="tabPending" onclick="showTab('pending')">&#128233; Pending Requests <span class="cnt some hidden" id="pendCount"></span></div>
-      <div class="tab" id="tabCov" onclick="showTab('cov')">&#128202; Coverage &amp; Progress</div>
+      <div class="tab on" id="tabUsers" onclick="showTab('users')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Users &amp; Staff</div>
+      <div class="tab" id="tabPending" onclick="showTab('pending')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg> Pending Requests <span class="cnt some hidden" id="pendCount"></span></div>
+      <div class="tab" id="tabCov" onclick="showTab('cov')"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-3"/></svg> Coverage &amp; Progress</div>
     </div>
 
     <!-- USERS -->
@@ -1059,10 +1093,10 @@
       <div class="card" id="editor" style="display:none"></div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap">
-          <b style="font-size:16px">&#128100; Teacher Accounts</b>
+          <b style="font-size:16px;display:inline-flex;align-items:center;gap:6px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Teacher Accounts</b>
           <span style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn ghost sm" onclick="exportUsers(false)">&#11015; Download CSV</button>
-            <button class="btn ghost sm" onclick="exportUsers(true)">&#128172; Copy for WhatsApp</button>
+            <button class="btn ghost sm" onclick="exportUsers(true)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Copy for WhatsApp</button>
             <button class="btn ghost sm" onclick="openBulkUsers()">&#65291; Bulk Add</button>
             <button class="btn sm" onclick="newUser()">&#65291; New User</button>
           </span>
@@ -1097,6 +1131,7 @@
   </main>
 </div>
 <script>
+const ICON = {calendar:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',user:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',users:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',mail:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>',chart:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-3"/></svg>',chat:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',key:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg>',logout:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>',back:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',right:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',chevron:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',check:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',x:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',star:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>',pencil:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',lock:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',unlock:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',download:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>',phone:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>',eye:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',eyeoff:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.2 3.2"/><path d="M6.6 6.6A16 16 0 0 0 2 12s3.6 8 10 8a9.7 9.7 0 0 0 4.4-1"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg>',alert:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',clip:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',trash:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',checkc:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>'};
 const DEFAULT_API = "https://result.result-300.workers.dev";
 const API = DEFAULT_API;
 let TOKEN = sessionStorage.getItem('eca_admin_token') || "";
@@ -1141,7 +1176,7 @@ function toggleLoginMode(){
   $('subUser').classList.toggle('hidden', !SUB_LOGIN);
   $('subPinWrap').classList.toggle('hidden', !SUB_LOGIN);
   $('passInput').classList.toggle('hidden', SUB_LOGIN);
-  $('modeLink').textContent = SUB_LOGIN ? '← Admin login' : 'Sub-admin login →';
+  $('modeLink').innerHTML = SUB_LOGIN ? ICON.back + ' Admin login' : 'Sub-admin login ' + ICON.right;
   $('lockMsg').textContent = '';
   (SUB_LOGIN ? $('subUser') : $('passInput')).focus();
 }
@@ -1171,13 +1206,13 @@ function logout(message){
   $('lockMsg').textContent = typeof message === 'string' ? message : '';
 }
 /* ---------- sub-admin account menu / change PIN ---------- */
-function closeAcct(){ $('acctMenu').classList.add('hidden'); }
+function closeAcct(){ $('acctMenu').classList.add('hidden'); const b = $('acctBtn'); if(b){ b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } }
 function toggleAcct(e){
   e.stopPropagation();
   const m = $('acctMenu'); if(!m.classList.contains('hidden')){ closeAcct(); return; }
   const r = $('acctBtn').getBoundingClientRect();
   m.style.top = (r.bottom + 8) + 'px'; m.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
-  m.classList.remove('hidden');
+  m.classList.remove('hidden'); $('acctBtn').classList.add('open'); $('acctBtn').setAttribute('aria-expanded', 'true');
 }
 document.addEventListener('click', e => { if(!e.target.closest('#acctMenu')) closeAcct(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape'){ closeAcct(); closePin(); } });
@@ -1200,7 +1235,7 @@ async function savePin(){
   try{
     const r = await api('POST', '/api/change-pin', {current: cur, pin: nw});
     TOKEN = r.token; sessionStorage.setItem('eca_admin_token', TOKEN);
-    msg.textContent = '✔ PIN changed. Use the new PIN next time you log in.'; msg.className = 'pinmsg ok';
+    msg.innerHTML = ICON.check + ' PIN changed. Use the new PIN next time you log in.'; msg.className = 'pinmsg ok';
     setTimeout(closePin, 1400);
   }catch(e){ bad(e.message); btn.disabled = false; }
 }
@@ -1234,8 +1269,8 @@ async function saveActiveTerm(){
   const sel = $('termSel').value, st = $('termStatus');
   if(!sel){ st.textContent = 'Choose a term'; st.className = 'status err'; return; }
   st.textContent = 'Saving…'; st.className = 'status';
-  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.textContent = '✔ Saved'; st.className = 'status ok'; }
-  catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; }
+  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.innerHTML = ICON.check + ' Saved'; st.className = 'status ok'; }
+  catch(e){ st.innerHTML = ICON.x + ' ' + esc(e.message); st.className = 'status err'; }
 }
 
 /* ---------- users list ---------- */
@@ -1256,7 +1291,7 @@ async function refreshUsers(){
         <button class="btn sm ghost" onclick="toggleActive('${esc(u.uid)}')">${u.active ? 'Disable' : 'Enable'}</button>
         <button class="btn sm danger" onclick="delUser('${esc(u.uid)}')">Delete</button>`;
     return `<tr><td><b>${esc(u.name)}</b>${u.mobile ? `<div class="muted">${esc(u.mobile)}</div>` : ''}</td><td>${esc(u.username)}</td>
-      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subadmin ? '<span class="badge b-open">★ Sub-admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? '✎ Can edit' : '🔒 Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
+      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subadmin ? '<span class="badge b-open">' + ICON.star + ' Sub-admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? ICON.pencil + ' Can edit' : ICON.lock + ' Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
       <td>${s.subs ? `${s.subs} subject(s) in ${s.classes} class(es)` : '<span class="muted">nothing assigned</span>'}</td>
       <td style="white-space:nowrap">${actions}</td></tr>`;
   }).join('');
@@ -1278,11 +1313,11 @@ function renderPending(){
     const reqList = summarizeRequested(u.requested);
     return `<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-        <div><b style="font-size:15px">${esc(u.name)}</b><div class="muted" style="margin-top:2px">Username: <b>${esc(u.username)}</b>${u.mobile ? ' · 📱 ' + esc(u.mobile) : ''}</div></div>
+        <div><b style="font-size:15px">${esc(u.name)}</b><div class="muted" style="margin-top:2px">Username: <b>${esc(u.username)}</b>${u.mobile ? ' · ' + ICON.phone + ' ' + esc(u.mobile) : ''}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn sm" onclick="approvePending('${esc(u.uid)}')">✔ Approve${reqList.length ? ' as requested' : ''}</button>
+          <button class="btn sm" onclick="approvePending('${esc(u.uid)}')">${ICON.check} Approve${reqList.length ? ' as requested' : ''}</button>
           <button class="btn sm ghost" onclick="editThenApprove('${esc(u.uid)}')">Edit first</button>
-          <button class="btn sm danger" onclick="rejectPending('${esc(u.uid)}')">✕ Reject</button>
+          <button class="btn sm danger" onclick="rejectPending('${esc(u.uid)}')">${ICON.x} Reject</button>
         </div>
       </div>
       ${reqList.length ? `<div class="muted" style="margin-top:10px">Requested to teach:</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px">${reqList.map(t => `<span class="badge b-lock">${esc(t)}</span>`).join('')}</div>` : '<div class="muted" style="margin-top:10px">No subjects requested — assign manually via "Edit first".</div>'}
@@ -1328,7 +1363,7 @@ function openBulkUsers(){
   closeEditor(); $('credsBox').innerHTML = '';
   $('bulkCard').style.display = 'block';
   $('bulkCard').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Bulk add users</b>
-      <button class="btn sm ghost" onclick="$('bulkCard').style.display='none'">✕ Close</button></div>
+      <button class="btn sm ghost" onclick="$('bulkCard').style.display='none'">${ICON.x} Close</button></div>
     <div class="muted" style="margin-bottom:6px">One user per line: Name, Mobile number (separated by a comma). The username is generated from the name automatically, and everyone gets PIN 1234. Assign subjects afterwards using Edit.</div>
     <textarea id="bulkNames" class="txt" rows="7" placeholder="Rajesh Kumar, 9876543210&#10;Simran Kaur, 9123456780&#10;Amit Sharma" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font:600 14px inherit;outline:none"></textarea>
     <div style="display:${SUB ? 'none' : 'flex'};gap:16px;flex-wrap:wrap;margin:8px 0;font-size:13px">
@@ -1352,11 +1387,11 @@ async function runBulkUsers(){
     catch(e){ made.push({name, username, mobile, pin: '', ok: false, err: e.message}); }
   }
   const okN = made.filter(x => x.ok).length;
-  st.textContent = `✔ ${okN} created (PIN 1234)` + (okN < made.length ? `, ✖ ${made.length - okN} failed` : ''); st.className = okN === made.length ? 'status ok' : 'status err';
+  st.innerHTML = ICON.check + ` ${okN} created (PIN 1234)` + (okN < made.length ? `, ${ICON.x} ${made.length - okN} failed` : ''); st.className = okN === made.length ? 'status ok' : 'status err';
   btn.disabled = false;
   $('bulkOut').innerHTML = `<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Mobile</th><th>Username</th><th>PIN</th></tr></thead><tbody>` +
     made.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.mobile)}</td><td>${x.ok ? esc(x.username) : '—'}</td><td>${x.ok ? '<code>' + esc(x.pin) + '</code>' : '<span class="warn">' + esc(x.err) + '</span>'}</td></tr>`).join('') + `</tbody></table></div>
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">⬇ Download list</button><button class="btn ghost" onclick="exportUsers(true)">💬 Copy for WhatsApp</button></div>`;
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">${ICON.download} Download list</button><button class="btn ghost" onclick="exportUsers(true)">${ICON.chat} Copy for WhatsApp</button></div>`;
   await refreshUsers();
 }
 async function exportUsers(whatsapp){
@@ -1417,16 +1452,16 @@ function renderEditor(u, pw){
       <div class="uf-av" id="ufAv">${esc(initials(u.name))}</div>
       <div class="uf-title"><b>${title}</b>
         <div class="uf-sub" id="ufSub">${isNew ? 'Username will be <b id="uPrev">—</b>' : 'Username: <b>' + esc(u.username) + '</b>' + (u.mobile ? ' · ' + esc(u.mobile) : '')}</div></div>
-      <button class="uf-x" type="button" onclick="closeEditor()" aria-label="Close">✕</button>
+      <button class="uf-x" type="button" onclick="closeEditor()" aria-label="Close">${ICON.x}</button>
     </div>
     <div class="uf-body">
       <div class="uf-sec ${editSub ? 'hidden' : ''}">
         <div class="uf-sh">${editSub ? '' : num()}<b>Basic details</b></div>
         <div class="uf-grid">
           <div class="uf-f"><label class="uf-l" for="eName">Full name</label>
-            <div class="uf-in"><span class="ic">👤</span><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30" placeholder="e.g. Rajesh Kumar" autocomplete="off" oninput="onNameInput()" ${SUB && !isNew ? 'disabled' : ''}></div></div>
+            <div class="uf-in"><span class="ic">${ICON.user}</span><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30" placeholder="e.g. Rajesh Kumar" autocomplete="off" oninput="onNameInput()" ${SUB && !isNew ? 'disabled' : ''}></div></div>
           <div class="uf-f"><label class="uf-l" for="eMobile">WhatsApp mobile</label>
-            <div class="uf-in"><span class="ic">📱</span><input class="txt" id="eMobile" value="${esc(u.mobile || '')}" maxlength="15" inputmode="numeric" placeholder="10-digit number" autocomplete="off" ${SUB && !isNew ? 'disabled' : ''}></div></div>
+            <div class="uf-in"><span class="ic">${ICON.phone}</span><input class="txt" id="eMobile" value="${esc(u.mobile || '')}" maxlength="15" inputmode="numeric" placeholder="10-digit number" autocomplete="off" ${SUB && !isNew ? 'disabled' : ''}></div></div>
         </div>
       </div>
 
@@ -1434,7 +1469,7 @@ function renderEditor(u, pw){
         <div class="uf-sh">${editSub ? '' : num()}<b>Login PIN</b><span class="muted">${isNew ? '4 digits — the teacher uses it to log in' : 'leave blank to keep the current PIN'}</span></div>
         <div class="uf-pin">
           <input class="mask txt" id="ePin" type="text" value="${esc(pw)}" maxlength="4" inputmode="numeric" placeholder="••••" oninput="this.value=this.value.replace(/\D/g,'');onPinInput()" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
-          <button class="uf-eye" type="button" id="pinEye" onclick="togglePin()" aria-label="Show PIN" title="Show / hide PIN">👁</button>
+          <button class="uf-eye" type="button" id="pinEye" onclick="togglePin()" aria-label="Show PIN" title="Show / hide PIN">${ICON.eye}</button>
           <button class="uf-chip" type="button" onclick="$('ePin').value='1234';onPinInput()">${isNew ? 'Use default 1234' : 'Reset to 1234'}</button>
         </div>
         <div class="uf-hint">${isNew ? 'You can share the login details right after creating the user.' : 'Changing the PIN logs the user out of all devices.'}</div>
@@ -1446,7 +1481,7 @@ function renderEditor(u, pw){
         ${tg('eShow', u.showFilled || u.canEdit, 'Show already-filled marks', 'Off = teacher sees only the students whose marks are still empty.')}
         ${tg('eEdit', u.canEdit, 'Allow editing entered marks', 'Off = marks are locked after the first save. Turning this on also shows filled marks.', '', `onchange="if(this.checked)$('eShow').checked=true"`)}
         ${tg('eSub', u.subadmin, 'Sub-admin', 'Can assign subjects, approve pending requests, create users and view coverage.', 'amber', `onchange="onPinInput()"`)}
-        <div class="uf-warn" id="subWarn">⚠ A sub-admin needs a PIN other than 1234.</div>
+        <div class="uf-warn" id="subWarn">${ICON.alert} A sub-admin needs a PIN other than 1234.</div>
       </div>`}
 
       <div class="uf-sec">
@@ -1455,7 +1490,7 @@ function renderEditor(u, pw){
       </div>
     </div>
     <div class="uf-bar">
-      <button class="btn" id="saveUserBtn" onclick="saveUser()">${isNew ? '✔ Create user' : (review ? '✔ Approve & save' : 'Save changes')}</button>
+      <button class="btn" id="saveUserBtn" onclick="saveUser()">${isNew ? ICON.check + ' Create user' : (review ? ICON.check + ' Approve & save' : 'Save changes')}</button>
       <button class="btn ghost" type="button" onclick="closeEditor()">Cancel</button>
       <span class="sp"></span>
       ${isNew || SUB ? '' : '<button class="btn danger" type="button" onclick="deleteUser()">Delete user</button>'}
@@ -1467,7 +1502,7 @@ function renderEditor(u, pw){
 }
 function togglePin(){
   const i = $('ePin'), show = i.classList.contains('mask');
-  i.classList.toggle('mask', !show); $('pinEye').textContent = show ? '🙈' : '👁'; $('pinEye').setAttribute('aria-label', show ? 'Hide PIN' : 'Show PIN');
+  i.classList.toggle('mask', !show); $('pinEye').innerHTML = show ? ICON.eyeoff : ICON.eye; $('pinEye').setAttribute('aria-label', show ? 'Hide PIN' : 'Show PIN');
 }
 function initials(name){
   const p = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -1523,7 +1558,7 @@ async function saveUser(){
       if(pin) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> PIN <code>${esc(pin)}</code> (old sessions were logged out)</div>`;
     }
     closeEditor(); await refreshUsers();
-  }catch(e){ st.textContent = '✖ ' + e.message; st.className = 'status err'; btn.disabled = false; }
+  }catch(e){ st.innerHTML = ICON.x + ' ' + esc(e.message); st.className = 'status err'; btn.disabled = false; }
 }
 async function delUser(uid){
   const u = USERS.find(x => x.uid === uid);
@@ -1533,7 +1568,7 @@ async function delUser(uid){
 async function deleteUser(){
   const u = USERS.find(x => x.uid === EDIT.uid);
   if(!u || !confirm(`Delete user "${u.name}" permanently?\n(Marks they already entered are kept.)`)) return;
-  try{ await api('DELETE', '/api/admin/users/' + u.uid); closeEditor(); await refreshUsers(); }catch(e){ $('editStatus').textContent = '✖ ' + e.message; $('editStatus').className = 'status err'; }
+  try{ await api('DELETE', '/api/admin/users/' + u.uid); closeEditor(); await refreshUsers(); }catch(e){ $('editStatus').innerHTML = ICON.x + ' ' + esc(e.message); $('editStatus').className = 'status err'; }
 }
 
 /* ---------- coverage & progress ---------- */
@@ -1546,7 +1581,7 @@ async function clearRecords(c, st, sub, ass){
   if(typed.trim().toUpperCase() !== 'CLEAR'){ alert('Not confirmed — nothing was deleted.'); return; }
   try{
     const res = await api('POST', '/api/admin/entries/clear', {c, st, sub, ass, confirm: 'CLEAR'});
-    alert(`✔ ${res.cleared} record(s) cleared for ${what}.`);
+    alert(`Done: ${res.cleared} record(s) cleared for ${what}.`);
     await loadCoverage();
   }catch(e){ alert('Could not clear: ' + e.message); }
 }
@@ -1559,7 +1594,7 @@ async function unlockAll(c, st, sub, ass){
   if(!confirm(`UNLOCK WHOLE ASSESSMENT\n\n${what}\n\nTeachers will be able to edit ALL entered marks of this assessment again. Each row locks again as soon as the teacher saves it.\n\nContinue?`)) return;
   try{
     const res = await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {all: true}));
-    alert(`✔ ${res.unlocked} record(s) unlocked for ${what}.`);
+    alert(`Done: ${res.unlocked} record(s) unlocked for ${what}.`);
     await loadCoverage();
   }catch(e){ alert('Could not unlock: ' + e.message); }
 }
@@ -1593,10 +1628,10 @@ function renderRecords(){
     .sort((p, q) => String(p[1].sectionId).localeCompare(String(q[1].sectionId)) || (p[1].rollNo || 0) - (q[1].rollNo || 0));
   const rows = roster.map(([k, s]) => {
     const e = entries[k] || {}, has = e.m != null || e.f;
-    const act = !has ? '<span class="muted">not entered</span>' : (e.ul ? '<span class="badge b-open">🔓 Unlocked</span>' : `<button class="btn sm" data-k="${esc(k)}" onclick="unlockOne(this.dataset.k, this)">🔓 Unlock</button>`);
+    const act = !has ? '<span class="muted">not entered</span>' : (e.ul ? '<span class="badge b-open">' + ICON.unlock + ' Unlocked</span>' : `<button class="btn sm" data-k="${esc(k)}" onclick="unlockOne(this.dataset.k, this)">${ICON.unlock} Unlock</button>`);
     return `<tr><td>${esc(s.rollNo)}</td><td>${esc(s.name)}</td><td>${esc(s.admNo)}</td><td>${has ? esc(e.m == null ? '—' : e.m) : ''}</td><td class="muted">${esc(e.by || '')}</td><td>${act}</td></tr>`;
   }).join('');
-  showRecModal(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(what)}</b><button class="btn ghost sm" onclick="closeRecords()">✕ Close</button></div>
+  showRecModal(`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><b>${esc(what)}</b><button class="btn ghost sm" onclick="closeRecords()">${ICON.x} Close</button></div>
     <div class="muted" style="font-size:12px;margin:6px 0">Unlock a student's mark so the teacher can correct it. It locks again when the teacher saves.</div>
     <div class="scroll"><table><thead><tr><th>Roll</th><th>Name</th><th>Adm</th><th>Marks</th><th>Entered by</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty">No students found.</td></tr>'}</tbody></table></div>`);
 }
@@ -1608,7 +1643,7 @@ async function unlockOne(k, btn){
     await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {keys: [k]}));
     REC.entries[k] = Object.assign({}, REC.entries[k], {ul: true});
     renderRecords();
-  }catch(e){ alert('Could not unlock: ' + e.message); if(btn){ btn.disabled = false; btn.textContent = '🔓 Unlock'; } }
+  }catch(e){ alert('Could not unlock: ' + e.message); if(btn){ btn.disabled = false; btn.innerHTML = ICON.unlock + ' Unlock'; } }
 }
 async function loadCoverage(){
   const a = $('cAss').value, f = $('cFilter').value, out = $('covOut');
@@ -1631,8 +1666,8 @@ async function loadCoverage(){
     (shown.length ? shown.map(r => {
       const pct = !r.optional ? Math.round(r.filled / r.total * 100) : (r.filled ? 100 : 0);
       return `<tr><td>${esc(cname(r.c))}</td><td>${esc(sname(r.st))}</td><td>${esc(subname(r.sub))}</td><td>${esc(assname(r.ass))}</td><td>${r.filled}${!r.optional ? ' / ' + r.total : ' (optional)'}</td>
-        <td><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${r.filled ? `<button class="btn sm ghost" title="Unlock marks of specific students" onclick="openRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">📋 Records</button><button class="btn sm" title="Unlock all students of this assessment" onclick="unlockAll('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🔓 Unlock all</button>` : ''}${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">🗑 Clear</button>` : ''}</div></td>
-        <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">⚠ Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
+        <td><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="bar ${pct < 100 ? 'part' : ''}"><div style="width:${pct}%"></div></div>${r.filled ? `<button class="btn sm ghost" title="Unlock marks of specific students" onclick="openRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.clip} Records</button><button class="btn sm" title="Unlock all students of this assessment" onclick="unlockAll('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.unlock} Unlock all</button>` : ''}${!SUB && r.filled ? `<button class="btn sm danger" title="Delete all entered marks of this row" onclick="clearRecords('${esc(r.c)}','${esc(r.st)}','${esc(r.sub)}','${esc(r.ass)}')">${ICON.trash} Clear</button>` : ''}</div></td>
+        <td>${r.owners.length ? esc(r.owners.join(', ')) : '<span class="warn">' + ICON.alert + ' Unassigned</span>'}</td><td class="muted">${esc((r.who || []).join(', '))}</td></tr>`;
     }).join('') : '<tr><td colspan="8" class="empty">Nothing to show for this filter.</td></tr>') + '</tbody></table></div></div>';
 }
 
