@@ -168,9 +168,19 @@
   }
 
   /* Login Card */
+  /* Login screen: vertically centre the card on phones/desktops */
+  body:has(#lockScreen:not(.hidden)) {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    padding: 14px;
+    overflow-y: auto;
+  }
   .lock {
+    width: 100%;
     max-width: 400px;
-    margin: 8vh auto 4vh;
+    margin: auto;
     text-align: center;
     background: var(--surf);
     border: 1px solid var(--border);
@@ -1288,10 +1298,14 @@
       border-radius: 14px;
     }
     .lock {
-      margin: 5vh auto 3vh;
-      width: calc(100% - 28px);
+      margin: auto;
+      width: 100%;
       padding: 34px 22px;
     }
+  }
+  @media (max-height: 620px) {
+    .lock { padding: 24px 28px; }
+    .lock .logo { width: 64px; height: 64px; margin-bottom: 8px; }
   }
 </style>
 </head>
