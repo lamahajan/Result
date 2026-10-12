@@ -1,10 +1,15 @@
-const CACHE_NAME = "eresult-cache-v2";
+const CACHE_NAME = "eresult-cache-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./admin.html",
   "./registration.html",
   "./manifest.json",
+  "./admin-manifest.json",
+  "./admin-icon-192.png",
+  "./admin-icon-512.png",
+  "./admin-icon-maskable-512.png",
+  "./admin-apple-touch-icon.png",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png",
@@ -53,7 +58,7 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() =>
-          caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("./index.html"))
+          caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match(url.pathname.endsWith("/admin.html") ? "./admin.html" : "./index.html"))
         )
     );
     return;
