@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7c3aed">
-<link rel="manifest" href="Admin-manifest.json">
+<link rel="manifest" href="admin-manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="eResult Admin">
-<link rel="apple-touch-icon" href="Admin-apple-touch-icon.png">
+<link rel="apple-touch-icon" href="admin-apple-touch-icon.png">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="Admin-icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="admin-icon-192.png">
 <title>eResult &mdash; Admin Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -590,7 +590,7 @@
     color: var(--accent2);
   }
 
-  /* Sub-Admin login: 4-digit PIN boxes */
+  /* Sub-admin login: 4-digit PIN boxes */
   .pinwrap {
     position: relative;
     margin: 0 0 14px;
@@ -1032,14 +1032,14 @@
   <h2>eResult Admin</h2>
   <p>Examination &amp; Result Management Portal</p>
   <input type="password" id="passInput" placeholder="Admin Passcode" autocomplete="current-password">
-  <input type="text" id="subUser" class="hidden" placeholder="Sub-Admin Username" autocomplete="username" autocapitalize="none">
+  <input type="text" id="subUser" class="hidden" placeholder="Sub-admin Username" autocomplete="username" autocapitalize="none">
   <div class="pinwrap hidden" id="subPinWrap" onclick="$('subPin').focus()">
     <input id="subPin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" oninput="pinInput(this)" onfocus="pinInput(this)">
     <div class="pinboxes" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   </div>
   <button id="loginBtn" onclick="login()">Log in</button>
   <div id="lockMsg" style="color:var(--red);font-size:13px;margin-top:8px"></div>
-  <div style="margin-top:16px"><a href="#" id="modeLink" onclick="event.preventDefault();toggleLoginMode()" style="color:var(--accent);font-size:13px;font-weight:700;text-decoration:none">Sub-Admin PIN login &rarr;</a></div>
+  <div style="margin-top:16px"><a href="#" id="modeLink" onclick="event.preventDefault();toggleLoginMode()" style="color:var(--accent);font-size:13px;font-weight:700;text-decoration:none">Sub-admin PIN login &rarr;</a></div>
 </div>
 
 <div id="app" class="hidden">
@@ -1134,9 +1134,9 @@
 const ICON = {calendar:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',user:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',users:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',mail:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>',chart:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-3"/></svg>',chat:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',key:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/></svg>',logout:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>',back:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',right:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',chevron:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',check:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',x:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',star:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>',pencil:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',lock:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',unlock:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>',download:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>',phone:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>',eye:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',eyeoff:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 4.2A10 10 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.2 3.2"/><path d="M6.6 6.6A16 16 0 0 0 2 12s3.6 8 10 8a9.7 9.7 0 0 0 4.4-1"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="m2 2 20 20"/></svg>',alert:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',clip:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',trash:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',checkc:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>'};
 const DEFAULT_API = "https://result.result-300.workers.dev";
 const API = DEFAULT_API;
-let TOKEN = sessionStorage.getItem('eca_Admin_token') || "";
+let TOKEN = sessionStorage.getItem('eca_admin_token') || "";
 let CFG = null, USERS = [], EDIT = null, ACTIVE_TERM = null, COV = [];
-let SUB = sessionStorage.getItem('eca_Admin_sub') === '1', ME = null, SUB_LOGIN = false;   // SUB = logged in as a sub-Admin (limited powers)
+let SUB = sessionStorage.getItem('eca_admin_sub') === '1', ME = null, SUB_LOGIN = false;   // SUB = logged in as a sub-admin (limited powers)
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1176,7 +1176,7 @@ function toggleLoginMode(){
   $('subUser').classList.toggle('hidden', !SUB_LOGIN);
   $('subPinWrap').classList.toggle('hidden', !SUB_LOGIN);
   $('passInput').classList.toggle('hidden', SUB_LOGIN);
-  $('modeLink').innerHTML = SUB_LOGIN ? ICON.back + ' Admin login' : 'Sub-Admin login ' + ICON.right;
+  $('modeLink').innerHTML = SUB_LOGIN ? ICON.back + ' Admin login' : 'Sub-admin login ' + ICON.right;
   $('lockMsg').textContent = '';
   (SUB_LOGIN ? $('subUser') : $('passInput')).focus();
 }
@@ -1185,27 +1185,27 @@ async function login(){
   const uname = $('subUser').value.trim().toLowerCase(), p = SUB_LOGIN ? $('subPin').value : $('passInput').value;
   if(SUB_LOGIN && !uname){ msg.textContent = 'Enter your username'; $('subUser').focus(); return; }
   if(SUB_LOGIN && !/^\d{4}$/.test(p)){ msg.textContent = 'Enter your 4-digit PIN'; $('subPin').focus(); return; }
-  if(!SUB_LOGIN && !p){ msg.textContent = 'Enter the Admin passcode'; return; }
+  if(!SUB_LOGIN && !p){ msg.textContent = 'Enter the admin passcode'; return; }
   if(document.body.dataset.loginBusy) return;
   setLoginBusy(true);
   try{
     TOKEN = ''; SUB = false;
-    const r = SUB_LOGIN ? await api('POST', '/api/login', {username: uname, pin: p}) : await api('POST', '/api/Admin/login', {passcode: p});
-    TOKEN = r.token; sessionStorage.setItem('eca_Admin_token', TOKEN); $('passInput').value = ''; if(SUB_LOGIN) pinClear(false);
+    const r = SUB_LOGIN ? await api('POST', '/api/login', {username: uname, pin: p}) : await api('POST', '/api/admin/login', {passcode: p});
+    TOKEN = r.token; sessionStorage.setItem('eca_admin_token', TOKEN); $('passInput').value = ''; if(SUB_LOGIN) pinClear(false);
     await start();
-  }catch(e){ msg.textContent = e.message; TOKEN = ''; sessionStorage.removeItem('eca_Admin_token'); if(SUB_LOGIN) pinClear(true); }
+  }catch(e){ msg.textContent = e.message; TOKEN = ''; sessionStorage.removeItem('eca_admin_token'); if(SUB_LOGIN) pinClear(true); }
   setLoginBusy(false);
 }
 $('passInput').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
 $('subUser').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('subPin').focus(); } });
 $('subPin').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
 function logout(message){
-  TOKEN = ''; sessionStorage.removeItem('eca_Admin_token'); sessionStorage.removeItem('eca_Admin_sub'); EDIT = null; SUB = false; ME = null;
+  TOKEN = ''; sessionStorage.removeItem('eca_admin_token'); sessionStorage.removeItem('eca_admin_sub'); EDIT = null; SUB = false; ME = null;
   $('termCard').style.display = ''; $('subBadge').classList.add('hidden'); $('acctBtn').classList.add('hidden'); $('logoutBtn').classList.remove('hidden'); closeAcct(); closePin();
   $('app').classList.add('hidden'); $('lockScreen').classList.remove('hidden');
   $('lockMsg').textContent = typeof message === 'string' ? message : '';
 }
-/* ---------- sub-Admin account menu / change PIN ---------- */
+/* ---------- sub-admin account menu / change PIN ---------- */
 function closeAcct(){ $('acctMenu').classList.add('hidden'); const b = $('acctBtn'); if(b){ b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } }
 function toggleAcct(e){
   e.stopPropagation();
@@ -1234,7 +1234,7 @@ async function savePin(){
   btn.disabled = true; msg.textContent = 'Saving…'; msg.className = 'pinmsg';
   try{
     const r = await api('POST', '/api/change-pin', {current: cur, pin: nw});
-    TOKEN = r.token; sessionStorage.setItem('eca_Admin_token', TOKEN);
+    TOKEN = r.token; sessionStorage.setItem('eca_admin_token', TOKEN);
     msg.innerHTML = ICON.check + ' PIN changed. Use the new PIN next time you log in.'; msg.className = 'pinmsg ok';
     setTimeout(closePin, 1400);
   }catch(e){ bad(e.message); btn.disabled = false; }
@@ -1248,15 +1248,15 @@ function showTab(t){
 }
 async function start(){
   const b = await api('GET', '/api/bootstrap');
-  SUB = b.role === 'user' && !!(b.me && b.me.subAdmin); ME = b.me || null;
-  if(b.role !== 'Admin' && !SUB){ logout(b.role === 'user' ? 'This account is not a sub-Admin. Teachers please use the marks-entry page.' : 'Not an Admin session.'); return; }
-  sessionStorage.setItem('eca_Admin_sub', SUB ? '1' : '0');
+  SUB = b.role === 'user' && !!(b.me && b.me.subadmin); ME = b.me || null;
+  if(b.role !== 'admin' && !SUB){ logout(b.role === 'user' ? 'This account is not a sub-admin. Teachers please use the marks-entry page.' : 'Not an admin session.'); return; }
+  sessionStorage.setItem('eca_admin_sub', SUB ? '1' : '0');
   CFG = b.config; window.ALLSTUDENTS = b.students;
   $('lockScreen').classList.add('hidden'); $('app').classList.remove('hidden');
-  $('schoolName').textContent = ((CFG.school || {}).name || 'School') + (SUB ? ' — Sub-Admin' : ' — Admin');
-  $('subBadge').classList.toggle('hidden', !SUB); $('subBadge').textContent = SUB ? 'Sub-Admin: ' + ((ME && ME.name) || '') : '';
-  $('termCard').style.display = SUB ? 'none' : '';   // only the full Admin sets the feeding term
-  $('acctBtn').classList.toggle('hidden', !SUB); $('logoutBtn').classList.toggle('hidden', SUB);   // sub-Admin: Account menu (Change PIN / Log out)
+  $('schoolName').textContent = ((CFG.school || {}).name || 'School') + (SUB ? ' — Sub-admin' : ' — Admin');
+  $('subBadge').classList.toggle('hidden', !SUB); $('subBadge').textContent = SUB ? 'Sub-admin: ' + ((ME && ME.name) || '') : '';
+  $('termCard').style.display = SUB ? 'none' : '';   // only the full admin sets the feeding term
+  $('acctBtn').classList.toggle('hidden', !SUB); $('logoutBtn').classList.toggle('hidden', SUB);   // sub-admin: Account menu (Change PIN / Log out)
   const terms = Object.keys(CFG.terms || {}).sort((a, b) => (CFG.terms[a].sqc || CFG.terms[a].id) - (CFG.terms[b].sqc || CFG.terms[b].id)).map(k => opt(k, CFG.terms[k].printName || CFG.terms[k].name)).join('');
   const asses = Object.keys(CFG.assessments || {}).sort((a, b) => (CFG.assessments[a].sqc || CFG.assessments[a].id) - (CFG.assessments[b].sqc || CFG.assessments[b].id)).map(k => opt(k, CFG.assessments[k].name)).join('');
   $('cAss').innerHTML = '<option value="">All assessments</option>' + asses;
@@ -1269,7 +1269,7 @@ async function saveActiveTerm(){
   const sel = $('termSel').value, st = $('termStatus');
   if(!sel){ st.textContent = 'Choose a term'; st.className = 'status err'; return; }
   st.textContent = 'Saving…'; st.className = 'status';
-  try{ await api('PUT', '/api/Admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.innerHTML = ICON.check + ' Saved'; st.className = 'status ok'; }
+  try{ await api('PUT', '/api/admin/settings', {activeTerm: sel}); ACTIVE_TERM = sel; st.innerHTML = ICON.check + ' Saved'; st.className = 'status ok'; }
   catch(e){ st.innerHTML = ICON.x + ' ' + esc(e.message); st.className = 'status err'; }
 }
 
@@ -1280,18 +1280,18 @@ function assignStats(a){
   return {subs, classes: classes.length};
 }
 async function refreshUsers(){
-  USERS = (await api('GET', '/api/Admin/users')).users;
+  USERS = (await api('GET', '/api/admin/users')).users;
   const approved = USERS.filter(u => !u.pending);
   const rows = approved.map(u => {
     const s = assignStats(u.assign);
-    const locked = SUB && u.subAdmin && !(ME && u.uid === ME.uid);   // a sub-Admin cannot touch other sub-Admins
+    const locked = SUB && u.subadmin && !(ME && u.uid === ME.uid);   // a sub-admin cannot touch other sub-admins
     const actions = SUB
-      ? (locked ? '<span class="muted">Admin only</span>' : `<button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Assign subjects</button>`)
+      ? (locked ? '<span class="muted">admin only</span>' : `<button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Assign subjects</button>`)
       : `<button class="btn sm ghost" onclick="editUser('${esc(u.uid)}')">Edit</button>
         <button class="btn sm ghost" onclick="toggleActive('${esc(u.uid)}')">${u.active ? 'Disable' : 'Enable'}</button>
         <button class="btn sm danger" onclick="delUser('${esc(u.uid)}')">Delete</button>`;
     return `<tr><td><b>${esc(u.name)}</b>${u.mobile ? `<div class="muted">${esc(u.mobile)}</div>` : ''}</td><td>${esc(u.username)}</td>
-      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subAdmin ? '<span class="badge b-open">' + ICON.star + ' Sub-Admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? ICON.pencil + ' Can edit' : ICON.lock + ' Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
+      <td><span class="badge ${u.active ? 'b-on' : 'b-off'}">${u.active ? 'Active' : 'Disabled'}</span> ${u.subadmin ? '<span class="badge b-open">' + ICON.star + ' Sub-admin</span>' : ''} <span class="badge ${u.canEdit ? 'b-open' : 'b-lock'}">${u.canEdit ? ICON.pencil + ' Can edit' : ICON.lock + ' Locked'}</span> ${u.showFilled || u.canEdit ? '<span class="badge b-lock">Filled visible</span>' : ''}</td>
       <td>${s.subs ? `${s.subs} subject(s) in ${s.classes} class(es)` : '<span class="muted">nothing assigned</span>'}</td>
       <td style="white-space:nowrap">${actions}</td></tr>`;
   }).join('');
@@ -1325,13 +1325,13 @@ function renderPending(){
   }).join('');
 }
 async function approvePending(uid){
-  try{ await api('PUT', '/api/Admin/users/' + uid, {approve: true}); await refreshUsers(); renderPending(); }
+  try{ await api('PUT', '/api/admin/users/' + uid, {approve: true}); await refreshUsers(); renderPending(); }
   catch(e){ alert(e.message); }
 }
 async function rejectPending(uid){
   const u = USERS.find(x => x.uid === uid);
   if(!u || !confirm(`Reject and delete this request from "${u.name}"?`)) return;
-  try{ await api('DELETE', '/api/Admin/users/' + uid); await refreshUsers(); renderPending(); }
+  try{ await api('DELETE', '/api/admin/users/' + uid); await refreshUsers(); renderPending(); }
   catch(e){ alert(e.message); }
 }
 function editThenApprove(uid){
@@ -1343,7 +1343,7 @@ function editThenApprove(uid){
 }
 async function toggleActive(uid){
   const u = USERS.find(x => x.uid === uid); if(!u) return;
-  try{ await api('PUT', '/api/Admin/users/' + uid, {active: !u.active}); await refreshUsers(); }catch(e){ alert(e.message); }
+  try{ await api('PUT', '/api/admin/users/' + uid, {active: !u.active}); await refreshUsers(); }catch(e){ alert(e.message); }
 }
 
 /* ---------- editor ---------- */
@@ -1383,7 +1383,7 @@ async function runBulkUsers(){
   for(let i = 0; i < entries.length; i++){
     const {name, mobile} = entries[i], username = makeUsername(name, taken);
     st.textContent = `Creating ${i + 1}/${entries.length}…`;
-    try{ await api('POST', '/api/Admin/users', {name, username, mobile, pin, active: true, canEdit, showFilled, assign: {}}); taken.add(username); CREDS[username] = pin; made.push({name, username, mobile, pin, ok: true}); }
+    try{ await api('POST', '/api/admin/users', {name, username, mobile, pin, active: true, canEdit, showFilled, assign: {}}); taken.add(username); CREDS[username] = pin; made.push({name, username, mobile, pin, ok: true}); }
     catch(e){ made.push({name, username, mobile, pin: '', ok: false, err: e.message}); }
   }
   const okN = made.filter(x => x.ok).length;
@@ -1398,7 +1398,7 @@ async function exportUsers(whatsapp){
   await refreshUsers();
   const unknown = SUB ? [] : USERS.filter(u => !u.pending && !CREDS[u.username]);
   if(unknown.length && confirm(`${unknown.length} user(s) have a PIN that cannot be shown (PINs are stored hashed — if it was never changed, it is still 1234).\n\nOK = reset their PIN to 1234 (their old sessions will be logged out)\nCancel = leave their PIN blank in the list`)){
-    for(const u of unknown){ const pin = genPin(); try{ await api('PUT', '/api/Admin/users/' + u.uid, {pin}); CREDS[u.username] = pin; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
+    for(const u of unknown){ const pin = genPin(); try{ await api('PUT', '/api/admin/users/' + u.uid, {pin}); CREDS[u.username] = pin; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
   }
   const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.filter(u => !u.pending && (!SUB || CREDS[u.username])).map(u => ({name: u.name, username: u.username, mobile: u.mobile || '', pin: CREDS[u.username] || ''}));
   if(whatsapp){
@@ -1442,7 +1442,7 @@ function renderEditor(u, pw){
       <button class="btn sm ghost" type="button" onclick="event.preventDefault();grpAll('${esc(c)}','${esc(st)}',false)">None</button></span></summary>
       <div class="subs">${subs.map(sub => `<label class="chk"><input type="checkbox" data-c="${esc(c)}" data-st="${esc(st)}" data-sub="${esc(sub)}" ${isOn(c, st, sub) ? 'checked' : ''} onchange="onChk(this)"> ${esc(subname(sub))}${sm[sub].optional && !sm[sub].compulsory ? ' <span class="muted">(optional)</span>' : ''}</label>`).join('')}</div></details>`;
   }));
-  const review = !!EDIT.approveOnSave, editSub = SUB && !isNew;   // editSub = sub-Admin editing an existing user (assignment only)
+  const review = !!EDIT.approveOnSave, editSub = SUB && !isNew;   // editSub = sub-admin editing an existing user (assignment only)
   let n = 0; const num = () => `<span class="uf-n">${++n}</span>`;
   const title = isNew ? 'New user' : (review ? 'Review & approve' : (SUB ? 'Assign subjects' : 'Edit user'));
   const tg = (id, on, t, d, cls, extra) => `<label class="uf-tg ${cls || ''}"><span class="t"><b>${t}</b><span>${d}</span></span><input type="checkbox" id="${id}" ${on ? 'checked' : ''} ${extra || ''}></label>`;
@@ -1480,8 +1480,8 @@ function renderEditor(u, pw){
         ${tg('eActive', u.active !== false || review, 'Account active', 'Turn off to block this user from logging in.')}
         ${tg('eShow', u.showFilled || u.canEdit, 'Show already-filled marks', 'Off = teacher sees only the students whose marks are still empty.')}
         ${tg('eEdit', u.canEdit, 'Allow editing entered marks', 'Off = marks are locked after the first save. Turning this on also shows filled marks.', '', `onchange="if(this.checked)$('eShow').checked=true"`)}
-        ${tg('eSub', u.subAdmin, 'Sub-Admin', 'Can assign subjects, approve pending requests, create users and view coverage.', 'amber', `onchange="onPinInput()"`)}
-        <div class="uf-warn" id="subWarn">${ICON.alert} A sub-Admin needs a PIN other than 1234.</div>
+        ${tg('eSub', u.subadmin, 'Sub-admin', 'Can assign subjects, approve pending requests, create users and view coverage.', 'amber', `onchange="onPinInput()"`)}
+        <div class="uf-warn" id="subWarn">${ICON.alert} A sub-admin needs a PIN other than 1234.</div>
       </div>`}
 
       <div class="uf-sec">
@@ -1530,30 +1530,30 @@ function grpAll(c, st, on){
 async function saveUser(){
   const st = $('editStatus'), btn = $('saveUserBtn');
   const name = $('eName').value.trim(), username = EDIT.uid ? EDIT.username : makeUsername(name), mobile = $('eMobile').value.replace(/\D/g, ''), pin = $('ePin').value.trim();
-  const active = SUB ? true : $('eActive').checked, canEdit = SUB ? false : $('eEdit').checked, showFilled = SUB ? false : ($('eShow').checked || $('eEdit').checked), subAdmin = SUB ? false : $('eSub').checked;
+  const active = SUB ? true : $('eActive').checked, canEdit = SUB ? false : $('eEdit').checked, showFilled = SUB ? false : ($('eShow').checked || $('eEdit').checked), subadmin = SUB ? false : $('eSub').checked;
   st.className = 'status';
   if(!name || !username){ st.textContent = 'Name is required.'; st.className = 'status err'; return; }
-  if(subAdmin && pin === '1234'){ st.textContent = 'A sub-Admin needs a PIN other than 1234.'; st.className = 'status err'; return; }
+  if(subadmin && pin === '1234'){ st.textContent = 'A sub-admin needs a PIN other than 1234.'; st.className = 'status err'; return; }
   btn.disabled = true; st.textContent = 'Saving…';
   try{
     if(!EDIT.uid){
       if(!/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits');
       const nb = {name, username, mobile, pin, active, canEdit, showFilled, assign: EDIT.assign};
-      if(!SUB) nb.subAdmin = subAdmin;
-      await api('POST', '/api/Admin/users', nb);
+      if(!SUB) nb.subadmin = subadmin;
+      await api('POST', '/api/admin/users', nb);
       CREDS[username] = pin;
       $('credsBox').innerHTML = `<div class="creds"><b>User created.</b> Share these login details:<br>Username: <code>${esc(username)}</code> &nbsp; PIN: <code>${esc(pin)}</code>
         <div class="muted" style="margin-top:4px">The PIN cannot be viewed again later — you can only set a new one.</div></div>`;
     }else if(SUB){
-      // sub-Admin may only change the subject assignment (and approve a pending request)
+      // sub-admin may only change the subject assignment (and approve a pending request)
       const body = {assign: EDIT.assign};
       if(EDIT.approveOnSave) body.approve = true;
-      await api('PUT', '/api/Admin/users/' + EDIT.uid, body);
+      await api('PUT', '/api/admin/users/' + EDIT.uid, body);
     }else{
-      const body = {name, username, mobile, active, canEdit, showFilled, subAdmin, assign: EDIT.assign};
+      const body = {name, username, mobile, active, canEdit, showFilled, subadmin, assign: EDIT.assign};
       if(EDIT.approveOnSave) body.approve = true;
       if(pin){ if(!/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits'); body.pin = pin; }
-      await api('PUT', '/api/Admin/users/' + EDIT.uid, body);
+      await api('PUT', '/api/admin/users/' + EDIT.uid, body);
       if(pin) CREDS[username] = pin;
       if(pin) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> PIN <code>${esc(pin)}</code> (old sessions were logged out)</div>`;
     }
@@ -1563,12 +1563,12 @@ async function saveUser(){
 async function delUser(uid){
   const u = USERS.find(x => x.uid === uid);
   if(!u || !confirm(`Delete user "${u.name}" permanently?\n(Marks they already entered are kept.)`)) return;
-  try{ await api('DELETE', '/api/Admin/users/' + uid); if(EDIT && EDIT.uid === uid) closeEditor(); await refreshUsers(); }catch(e){ alert(e.message); }
+  try{ await api('DELETE', '/api/admin/users/' + uid); if(EDIT && EDIT.uid === uid) closeEditor(); await refreshUsers(); }catch(e){ alert(e.message); }
 }
 async function deleteUser(){
   const u = USERS.find(x => x.uid === EDIT.uid);
   if(!u || !confirm(`Delete user "${u.name}" permanently?\n(Marks they already entered are kept.)`)) return;
-  try{ await api('DELETE', '/api/Admin/users/' + u.uid); closeEditor(); await refreshUsers(); }catch(e){ $('editStatus').innerHTML = ICON.x + ' ' + esc(e.message); $('editStatus').className = 'status err'; }
+  try{ await api('DELETE', '/api/admin/users/' + u.uid); closeEditor(); await refreshUsers(); }catch(e){ $('editStatus').innerHTML = ICON.x + ' ' + esc(e.message); $('editStatus').className = 'status err'; }
 }
 
 /* ---------- coverage & progress ---------- */
@@ -1580,12 +1580,12 @@ async function clearRecords(c, st, sub, ass){
   if(typed === null) return;
   if(typed.trim().toUpperCase() !== 'CLEAR'){ alert('Not confirmed — nothing was deleted.'); return; }
   try{
-    const res = await api('POST', '/api/Admin/entries/clear', {c, st, sub, ass, confirm: 'CLEAR'});
+    const res = await api('POST', '/api/admin/entries/clear', {c, st, sub, ass, confirm: 'CLEAR'});
     alert(`Done: ${res.cleared} record(s) cleared for ${what}.`);
     await loadCoverage();
   }catch(e){ alert('Could not clear: ' + e.message); }
 }
-/* ---------- unlock marks (Admin + sub-Admin) ---------- */
+/* ---------- unlock marks (admin + sub-admin) ---------- */
 let REC = null;
 const unlockBase = (c, st, sub, ass) => ({term: ACTIVE_TERM || (CFG && CFG.activeTerm) || '', c, st, sub, ass});
 const unlockWhat = (c, st, sub, ass) => `${cname(c)} · ${sname(st)} · ${subname(sub)} · ${assname(ass)}`;
@@ -1593,7 +1593,7 @@ async function unlockAll(c, st, sub, ass){
   const what = unlockWhat(c, st, sub, ass);
   if(!confirm(`UNLOCK WHOLE ASSESSMENT\n\n${what}\n\nTeachers will be able to edit ALL entered marks of this assessment again. Each row locks again as soon as the teacher saves it.\n\nContinue?`)) return;
   try{
-    const res = await api('POST', '/api/Admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {all: true}));
+    const res = await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {all: true}));
     alert(`Done: ${res.unlocked} record(s) unlocked for ${what}.`);
     await loadCoverage();
   }catch(e){ alert('Could not unlock: ' + e.message); }
@@ -1640,7 +1640,7 @@ async function unlockOne(k, btn){
   const {c, st, sub, ass} = REC;
   if(btn){ btn.disabled = true; btn.textContent = 'Unlocking…'; }
   try{
-    await api('POST', '/api/Admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {keys: [k]}));
+    await api('POST', '/api/admin/entries/unlock', Object.assign(unlockBase(c, st, sub, ass), {keys: [k]}));
     REC.entries[k] = Object.assign({}, REC.entries[k], {ul: true});
     renderRecords();
   }catch(e){ alert('Could not unlock: ' + e.message); if(btn){ btn.disabled = false; btn.innerHTML = ICON.unlock + ' Unlock'; } }
