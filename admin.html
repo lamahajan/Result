@@ -1994,16 +1994,17 @@ async function runBulkUsers(){
   btn.disabled = false;
   $('bulkOut').innerHTML = `<div class="scroll" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Mobile</th><th>Username</th><th>PIN</th></tr></thead><tbody>` +
     made.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.mobile)}</td><td>${x.ok ? esc(x.username) : '—'}</td><td>${x.ok ? '<code>' + esc(x.pin) + '</code>' : '<span class="warn">' + esc(x.err) + '</span>'}</td></tr>`).join('') + `</tbody></table></div>
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">${ICON.download} Download list</button><button class="btn ghost" onclick="exportUsers(true)">${ICON.chat} Copy for WhatsApp</button></div>`;
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="exportUsers(false)">${ICON.download} Download CSV</button><button class="btn ghost" onclick="exportUsers(true)">${ICON.chat} Copy for WhatsApp</button></div>`;
   await refreshUsers();
 }
 async function exportUsers(whatsapp){
   await refreshUsers();
-  const unknown = SUB ? [] : USERS.filter(u => !u.pending && !CREDS[u.username]);
+  /* CSV never touches PINs: the PIN reset prompt is only for the WhatsApp copy */
+  const unknown = (SUB || !whatsapp) ? [] : USERS.filter(u => !u.pending && !CREDS[u.username]);
   if(unknown.length && confirm(`${unknown.length} user(s) have a PIN that cannot be shown (PINs are stored hashed — if it was never changed, it is still 1234).\n\nOK = reset their PIN to 1234 (their old sessions will be logged out)\nCancel = leave their PIN blank in the list`)){
     for(const u of unknown){ const pin = genPin(); try{ await api('PUT', '/api/admin/users/' + u.uid, {pin}); CREDS[u.username] = pin; }catch(e){ alert('Reset failed for ' + u.name + ': ' + e.message); } }
   }
-  const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.filter(u => !u.pending && (!SUB || CREDS[u.username])).map(u => ({name: u.name, username: u.username, mobile: u.mobile || '', pin: CREDS[u.username] || ''}));
+  const school = ((CFG && CFG.school) || {}).name || 'School', rows = USERS.filter(u => !u.pending && (!whatsapp || !SUB || CREDS[u.username])).map(u => ({name: u.name, username: u.username, mobile: u.mobile || '', pin: CREDS[u.username] || ''}));
   if(whatsapp){
     const txt = rows.map(r => `*${school} – Marks Entry*\nName: ${r.name}\nUsername: ${r.username}\nPIN: ${r.pin || '(not shown)'}`).join('\n\n');
     try{ await navigator.clipboard.writeText(txt); alert('Copied — paste it into WhatsApp.'); }
@@ -2011,7 +2012,7 @@ async function exportUsers(whatsapp){
     return;
   }
   const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-  const csv = '\uFEFF' + [['Name', 'Mobile', 'Username', 'PIN'].map(q).join(',')].concat(rows.map(r => [r.name, r.mobile, r.username, r.pin].map(q).join(','))).join('\r\n');
+  const csv = '\uFEFF' + [['Name', 'Mobile', 'Username'].map(q).join(',')].concat(rows.map(r => [r.name, r.mobile, r.username].map(q).join(','))).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'})); a.download = 'marks-entry-users.csv'; document.body.appendChild(a); a.click(); a.remove();
 }
 function newUser(){ EDIT = {uid: null, assign: {}}; $('credsBox').innerHTML = ''; renderEditor({name:'', username:'', mobile:'', active:true}, genPin()); $('bulkCard').style.display = 'none'; }
@@ -2058,13 +2059,16 @@ function renderEditor(u, pw){
       <button class="uf-x" type="button" onclick="closeEditor()" aria-label="Close">${ICON.x}</button>
     </div>
     <div class="uf-body">
-      <div class="uf-sec ${editSub ? 'hidden' : ''}">
-        <div class="uf-sh">${editSub ? '' : num()}<b>Basic details</b></div>
+      <div class="uf-sec">
+        <div class="uf-sh">${num()}<b>Basic details</b></div>
         <div class="uf-grid">
           <div class="uf-f"><label class="uf-l" for="eName">Full name</label>
             <div class="uf-in"><span class="ic">${ICON.user}</span><input class="txt" id="eName" value="${esc(u.name)}" maxlength="30" placeholder="e.g. Rajesh Kumar" autocomplete="off" oninput="onNameInput()" ${SUB && !isNew ? 'disabled' : ''}></div></div>
           <div class="uf-f"><label class="uf-l" for="eMobile">WhatsApp mobile</label>
             <div class="uf-in"><span class="ic">${ICON.phone}</span><input class="txt" id="eMobile" value="${esc(u.mobile || '')}" maxlength="15" inputmode="numeric" placeholder="10-digit number" autocomplete="off" ${SUB && !isNew ? 'disabled' : ''}></div></div>
+          <div class="uf-f"><label class="uf-l" for="eUser">Username</label>
+            <div class="uf-in"><span class="ic">${ICON.user}</span><input class="txt" id="eUser" value="${esc(isNew ? '' : u.username)}" maxlength="20" placeholder="${isNew ? 'auto from name (you can change it)' : 'username'}" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" oninput="onUserInput()"></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">3-20 characters: letters, digits, _ or -. ${isNew ? '' : 'After changing it, the teacher must log in with the new username.'}</div></div>
         </div>
       </div>
 
@@ -2113,7 +2117,14 @@ function initials(name){
 }
 function onNameInput(){
   const v = $('eName').value; $('ufAv').textContent = initials(v);
-  const p = $('uPrev'); if(p) p.textContent = v.trim() ? makeUsername(v) : '—';
+  const auto = v.trim() ? makeUsername(v) : '';
+  const p = $('uPrev'); if(p) p.textContent = auto || '—';
+  const eu = $('eUser'); if(eu && EDIT && !EDIT.uid && !EDIT.userManual) eu.value = auto;
+}
+function onUserInput(){
+  const eu = $('eUser'); eu.value = eu.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if(EDIT) EDIT.userManual = true;
+  const p = $('uPrev'); if(p) p.textContent = eu.value || '—';
 }
 function onPinInput(){
   const w = $('subWarn'); if(!w || !$('eSub')) return;
@@ -2132,10 +2143,11 @@ function grpAll(c, st, on){
 }
 async function saveUser(){
   const st = $('editStatus'), btn = $('saveUserBtn');
-  const name = $('eName').value.trim(), username = EDIT.uid ? EDIT.username : makeUsername(name), mobile = $('eMobile').value.replace(/\D/g, ''), pin = $('ePin').value.trim();
+  const name = $('eName').value.trim(), username = ($('eUser').value.trim().toLowerCase() || (EDIT.uid ? EDIT.username : makeUsername(name))), mobile = $('eMobile').value.replace(/\D/g, ''), pin = $('ePin').value.trim();
   const active = SUB ? true : $('eActive').checked, canEdit = SUB ? false : $('eEdit').checked, showFilled = SUB ? false : ($('eShow').checked || $('eEdit').checked), subadmin = SUB ? false : $('eSub').checked;
   st.className = 'status';
   if(!name || !username){ st.textContent = 'Name is required.'; st.className = 'status err'; return; }
+  if(!/^[a-z0-9_-]{3,20}$/.test(username)){ st.textContent = 'Username must be 3-20 characters: letters, digits, _ or -'; st.className = 'status err'; return; }
   if(subadmin && pin === '1234'){ st.textContent = 'A sub-admin needs a PIN other than 1234.'; st.className = 'status err'; return; }
   btn.disabled = true; st.textContent = 'Saving…';
   try{
@@ -2150,13 +2162,16 @@ async function saveUser(){
     }else if(SUB){
       // sub-admin may only change the subject assignment (and approve a pending request)
       const body = {assign: EDIT.assign};
+      if(username !== EDIT.username) body.username = username;
       if(EDIT.approveOnSave) body.approve = true;
       await api('PUT', '/api/admin/users/' + EDIT.uid, body);
+      if(username !== EDIT.username && CREDS[EDIT.username]){ CREDS[username] = CREDS[EDIT.username]; delete CREDS[EDIT.username]; }
     }else{
       const body = {name, username, mobile, active, canEdit, showFilled, subadmin, assign: EDIT.assign};
       if(EDIT.approveOnSave) body.approve = true;
       if(pin){ if(!/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits'); body.pin = pin; }
       await api('PUT', '/api/admin/users/' + EDIT.uid, body);
+      if(username !== EDIT.username && CREDS[EDIT.username]){ CREDS[username] = CREDS[EDIT.username]; delete CREDS[EDIT.username]; }
       if(pin) CREDS[username] = pin;
       if(pin) $('credsBox').innerHTML = `<div class="creds"><b>Saved.</b> New login for ${esc(name)}: username <code>${esc(username)}</code> PIN <code>${esc(pin)}</code> (old sessions were logged out)</div>`;
     }
