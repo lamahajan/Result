@@ -1722,7 +1722,7 @@
         <div class="row">
           <div class="field"><label>Assessment</label><select id="cAss"><option value="">All assessments</option></select></div>
           <div class="field"><label>Show</label><select id="cFilter">
-            <option value="all">All</option><option value="pending">Pending / incomplete</option><option value="unassigned">Unassigned only</option>
+            <option value="all">All</option><option value="pending">Pending / incomplete</option><option value="partial">Partially completed</option><option value="completed">Completed</option><option value="unassigned">Unassigned only</option>
           </select></div>
           <div class="field" style="flex:0"><label>&nbsp;</label><button class="btn" onclick="loadCoverage()">Check Progress</button></div>
         </div>
@@ -2262,7 +2262,7 @@ async function loadCoverage(){
   rows.forEach(r => { r.owners = owners[r.c + '|' + r.st + '|' + r.sub] || []; });
   const total = rows.length, unassigned = rows.filter(r => !r.owners.length).length, complete = rows.filter(done).length;
   $('covSummary').innerHTML = `<div class="card"><b>${complete}</b> of <b>${total}</b> class-subject assessments complete · <span class="${unassigned ? 'warn' : ''}"><b>${unassigned}</b> unassigned</span></div>`;
-  let shown = rows.filter(r => f === 'all' || (f === 'pending' && !done(r)) || (f === 'unassigned' && !r.owners.length));
+  let shown = rows.filter(r => f === 'all' || (f === 'pending' && !done(r)) || (f === 'partial' && r.filled > 0 && !done(r)) || (f === 'completed' && done(r)) || (f === 'unassigned' && !r.owners.length));
   shown.sort((x, y) => (CFG.classes[x.c].id - CFG.classes[y.c].id) || ((CFG.subjects[x.sub] || {}).id || 0) - ((CFG.subjects[y.sub] || {}).id || 0) || ((CFG.assessments[x.ass] || {}).sqc || 0) - ((CFG.assessments[y.ass] || {}).sqc || 0));
   out.innerHTML = `<div class="card" style="padding:0"><div class="scroll"><table><thead><tr><th>Class</th><th>Stream</th><th>Subject</th><th>Assessment</th><th>Filled</th><th>Progress</th><th>Assigned to</th><th>Entered by</th></tr></thead><tbody>` +
     (shown.length ? shown.map(r => {
