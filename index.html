@@ -1829,7 +1829,7 @@ function onCell(inp){
 function updateSaveState(){
   const b = $('saveBtn'); if(!b || !S) return;
   const bad = Object.keys(S.bad).length, st = $('saveStatus');
-  b.disabled = !!bad || !Object.keys(S.dirty).length;
+  b.disabled = !!bad || (!Object.keys(S.dirty).length && !unlockedKeys().length);
   if(bad && st){ st.textContent = 'Fix the red entries (0 to ' + S.conf.maxMark + ', or AB).'; st.className = 'status err'; }
   else if(st && st.classList.contains('err') && st.textContent.startsWith('Fix the red')){ st.textContent = ''; st.className = 'status'; }
 }
@@ -1847,22 +1847,26 @@ function cellKey(e, inp){
 }
 window.addEventListener('beforeunload', e => { if(S && Object.keys(S.dirty).length){ e.preventDefault(); e.returnValue = ''; } });
 
+/* records the admin unlocked that the teacher has not changed: saving the sheet locks them again */
+function unlockedKeys(){ return S ? S.all.map(([k]) => k).filter(k => S.unl[k] && !(k in S.dirty)) : []; }
 async function save(){
   if(!S || saving) return;
   const st = $('saveStatus'), btn = $('saveBtn');
   if(Object.keys(S.bad).length){ st.textContent = 'Fix the red cells first (0 to ' + S.conf.maxMark + ', or AB).'; st.className = 'status err'; return; }
-  const keys = Object.keys(S.dirty);
-  if(!keys.length){ st.textContent = 'Nothing new to save.'; st.className = 'status'; return; }
+  const keys = Object.keys(S.dirty), relock = unlockedKeys();
+  if(!keys.length && !relock.length){ st.textContent = 'Nothing new to save.'; st.className = 'status'; return; }
   saving = true; btn.disabled = true; st.textContent = 'Saving…'; st.className = 'status';
   const changes = {}; keys.forEach(k => { changes[k] = S.dirty[k]; });
   const mine = S, x = S.x;
   try{
-    await api('PATCH', '/api/sheet', {term: x.t, ass: x.a, sub: x.sub, c: x.c, st: x.st, changes});
+    await api('PATCH', '/api/sheet', {term: x.t, ass: x.a, sub: x.sub, c: x.c, st: x.st, changes, relock});
     keys.forEach(k => { mine.unl[k] = false; mine.base[k] = mine.dirty[k]; mine.by[k] = mine.dirty[k] === null ? '' : ME.name.slice(0, 20); const b = $('by_' + k); if(b) b.textContent = mine.by[k]; delete mine.dirty[k]; });
     document.querySelectorAll('input.m.dirty').forEach(i => { if(!(i.dataset.k in mine.dirty)) i.classList.remove('dirty'); });
-    st.innerHTML = ICON.check + ' Saved ' + keys.length + ' change(s) at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
-    if(!ME.canEdit) keys.forEach(k => { if(mine.base[k] != null){ mine.lock[k] = true; const i = document.querySelector(`input.m[data-k="${k}"]`); if(i){ i.readOnly = true; i.classList.add('locked'); i.classList.remove('dirty'); } } });
-    keys.forEach(rowState); updateFilled(); applyView();
+    relock.forEach(k => { mine.unl[k] = false; });
+    st.innerHTML = ICON.check + ' Saved ' + (keys.length ? keys.length + ' change(s)' : '') + (keys.length && relock.length ? ' · ' : '') + (relock.length ? relock.length + ' record(s) locked again' : '') + ' at ' + new Date().toLocaleTimeString(); st.className = 'status ok';
+    const touched = keys.concat(relock);
+    if(!ME.canEdit) touched.forEach(k => { if(mine.base[k] != null){ mine.lock[k] = true; const i = document.querySelector(`input.m[data-k="${k}"]`); if(i){ i.readOnly = true; i.classList.add('locked'); i.classList.remove('dirty'); } } });
+    touched.forEach(rowState); updateFilled(); applyView();
   }catch(e){ if(TOKEN){ st.innerHTML = ICON.x + ' Not saved: ' + esc(e.message) + ' (your entries are still on screen)'; st.className = 'status err'; } }
   saving = false; btn.disabled = false; updateSaveState();
 }
