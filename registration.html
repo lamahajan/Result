@@ -367,7 +367,7 @@
 
   <div class="field">
     <label>WhatsApp Mobile Number</label>
-    <input type="tel" id="mobile" placeholder="10-digit mobile number" maxlength="15" inputmode="numeric" autocomplete="tel">
+    <input type="tel" id="mobile" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" autocomplete="tel">
     <div class="hint">Used by the school administrator to contact you and verify access.</div>
   </div>
 
@@ -471,7 +471,7 @@ async function submitForm(){
   const msg = $('msg'); msg.className = ''; msg.textContent = '';
 
   if(!name){ msg.textContent = 'Please enter your name.'; msg.className = 'err'; return; }
-  if(!/^\d{7,15}$/.test(mobile)){ msg.textContent = 'Enter a valid WhatsApp mobile number.'; msg.className = 'err'; return; }
+  if(!/^\d{10}$/.test(mobile)){ msg.textContent = 'Enter a valid 10-digit WhatsApp mobile number.'; msg.className = 'err'; return; }
   if(!/^\d{4}$/.test(pin)){ msg.textContent = 'PIN must be exactly 4 digits.'; msg.className = 'err'; return; }
 
   // if a class/stream/subject is selected but "+ Add" was not tapped, include it
@@ -501,7 +501,7 @@ async function submitForm(){
 document.addEventListener('keydown', e => {
   if(e.key === 'Enter' && !$('formBox').classList.contains('hidden')) submitForm();
 });
-$('mobile').addEventListener('input', () => { $('mobile').value = $('mobile').value.replace(/\D/g, ''); });
+$('mobile').addEventListener('input', () => { $('mobile').value = $('mobile').value.replace(/\D/g, '').slice(0, 10); });
 $('pin').addEventListener('input', () => { $('pin').value = $('pin').value.replace(/\D/g, '').slice(0, 4); });
 </script>
 <script>
